@@ -41,29 +41,6 @@ char	*ft_strdup( const char *source)
 	return (p);
 }
 
-
-// void    quote(char *str, t_node **head)
-// {
-//     int type;
-    
-//     if (str[0] == '\'')
-//         type = S_QUOT;
-//     else if (str[0] == '\"')
-//         type = D_QUOT;
-// 	else if (str[0] == '>')
-// 		type = R_SIGNE;
-// 	else if (str[0] == '<')
-// 		type = L_SIGNE;
-// 	// else if (str == '>>')
-// 	// 	type = RIGHT_SHIFT;
-// 	else if (str[0] == '|')
-// 		type = PIPE;
-// 	else
-// 		type = CMD;
-//     add_node(head, str, type);
-// }
-
-
 char	*ft_strtrim(char *s1, char *set)
 {
 	size_t	i;

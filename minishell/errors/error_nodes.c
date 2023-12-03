@@ -1,13 +1,16 @@
 #include "../minishell.h"
 
-void set_redirect_in_nodes(t_node *head) {
-    t_node *current = head;
+void set_redirect_in_nodes(t_node *head) 
+{
+    t_node *current;
+
+    current = head;
     while (current != NULL) {
 
-            if (strcmp(current->data, "<<") == 0 ||
-                strcmp(current->data, ">>") == 0 ||
-                strcmp(current->data, "<") == 0 ||
-                strcmp(current->data, ">") == 0) 
+            if (ft_strcmp(current->data, "<<") == 0 ||
+                ft_strcmp(current->data, ">>") == 0 ||
+                ft_strcmp(current->data, "<") == 0 ||
+                ft_strcmp(current->data, ">") == 0) 
                 {
                     current->redirect = 1;
             }
@@ -22,11 +25,8 @@ int check_redirect(t_node *head)
 {
 
     while (head->next != NULL)
-    {
-        //printf("data: %s, path: %s, flag: %d\n\n", head->data, head->path, head->flag);
         head = head->next;
-    }
-    return 0;
+    return (0);
 //     t_node *current = head;
 //    // t_node *prev = NULL;
 
@@ -56,38 +56,22 @@ int check_redirect(t_node *head)
 
 int check_redirect_pipe(t_node *head) 
 {
-    t_node *current = head;
+    t_node *current;
 
+    current = head;
     while (current != NULL)
     {
-        // Check if current node is a redirection
         if ((current->redirect == 1) && (current->next->type == OPERATOR))
         {
             printf("Error: Redirection and pipe after not possible.\n");
-            return -1;
+            return (-1);
         }
         else if (current->type == OPERATOR && current->next->type == OPERATOR && current->next->next->type == 1)
         {
             printf("Error: Redirection and pipe after not possible.\n");
-            return -1;
-            
+            return (-1);
         }
         current = current->next;
     }
-
-    // If we made it through the whole list without returning, then the redirections are fine
-    return 0;
-}
-
-void    display_excute_list(t_excute *head)
-{
-    t_excute *current = head;
-    puts("jaaaaa");
-    if (current == NULL)
-        printf("je moeder");
-    while (current != NULL)
-    {
-        printf("%s\n", current->line);
-        current = current->next;
-    }
+    return (0);
 }

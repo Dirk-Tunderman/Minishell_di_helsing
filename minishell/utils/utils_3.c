@@ -1,5 +1,49 @@
 #include "../minishell.h"
 
+
+int count_quotes(char *line)
+{
+    int i = 0;
+    int count = 0;
+    while (line[i])
+    {
+        if ((line[i] == '\"' || line[i] == '\''))
+            count++;
+        i++;
+    }
+    return count;
+}
+
+bool check_quotes_correctness(const char *line)
+{
+    char quote_stack[100];
+    int stack_index;
+    int i;
+
+    stack_index = -1;
+    i = 0;
+    while(line[i])
+    {
+        if (line[i] == '\"' || line[i] == '\'')
+        {
+            if (stack_index >= 0 && quote_stack[stack_index] == line[i])
+                stack_index--;
+            else if (stack_index >= 0 && quote_stack[stack_index] != line[i])
+            {
+                stack_index++;
+                quote_stack[stack_index] = line[i];
+            }
+            else
+            {
+                stack_index++;
+                quote_stack[stack_index] = line[i];
+            }
+        }
+        i++;
+    }
+    return stack_index == -1;
+}
+
 int	checker_quotes(char *line)
 {
 	int	i;
@@ -9,7 +53,7 @@ int	checker_quotes(char *line)
 	i = 0;
 	j = 0;
 	k = 0;
-	while (line[i])
+	while (line[i]) // check even and uneven number of quotes
 	{
 		if (line[i] == '\"')
 			j++;
@@ -19,6 +63,8 @@ int	checker_quotes(char *line)
 	}
 	if (j % 2 != 0 || k % 2 != 0)
 		return (0);
+    if (check_quotes_correctness(line) == false)
+        return (0);
 	return (1);
 }
 
@@ -53,7 +99,8 @@ void    free_list(t_node *head)
 }
 
 
-char** ft_split(char* str, char c) {
+char** ft_split(char* str, char c) 
+{
     int i, j, k;
     int wc = 0; // word count
     int len = strlen(str);

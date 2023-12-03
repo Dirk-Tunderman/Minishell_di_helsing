@@ -78,9 +78,7 @@ t_env	*ft_lstlast(t_env *lst)
 	while (lst)
 	{
 		if (!lst->next)
-		{
 			return (lst);
-		}
 		lst = lst->next;
 	}
 	return (lst);
