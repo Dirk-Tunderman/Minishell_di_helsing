@@ -11,10 +11,11 @@
 #include <readline/history.h>
 #include <stdbool.h>
 #include <dirent.h>
+#include "execution/get_next_line.h"
 // #include "libft/libft.h"
 
 #define MAX_ARGS 1024
-
+#define OUT_OF_MEMORY 255
 
 typedef struct s_data t_data;
 typedef struct s_env t_env;
@@ -26,34 +27,34 @@ typedef struct s_redirect t_redirect;
 
 
  typedef enum s_token {
-    OPERATOR,
-    ARG,
-    QUOTE_ARG,
-    NONE, 
-    CMD,
-    BUILT_IN,
-    STDIN_RD,
-    STDOUT_RD,
-    HERDOC,
-    APPEND,    
-    REPROMPT,
+	OPERATOR,
+	ARG,
+	QUOTE_ARG,
+	NONE, 
+	CMD,
+	BUILT_IN,
+	STDIN_RD,
+	STDOUT_RD,
+	HERDOC,
+	APPEND,    
+	REPROMPT,
 } t_token;
 
 typedef struct s_data //stores the general data of the shell
 {
-    t_cmd *cmd;
-    char *line;
-    t_env *env;
+	t_cmd *cmd;
+	char *line;
+	t_env *env;
 } t_data;
 
 typedef struct s_cmd //stores the commands of the shell
 { 
-    char *cmd;
-    char **argv;//
-    char *opt;//delete
-    int x;
-    t_hrd *hrd;
-    struct s_cmd *next;
+	char *cmd;
+	char **argv;//
+	char *opt;//delete
+	int x;
+	t_hrd *hrd;
+	struct s_cmd *next;
 } t_cmd;
 
 typedef struct s_command {
@@ -66,33 +67,34 @@ typedef struct s_command {
 
 typedef struct s_cmd_full
 {
-    t_command *cmd_arr;
-    int cmd_count;
-    t_env *env;
+	t_command *cmd_arr;
+	int cmd_count;
+	int exit_status;
+	t_env *env;
 } t_cmd_full;
 
 typedef struct s_env //stores the environment
 {
-    char *key;
-    char *value;
-    struct s_env *next;
+	char *key;
+	char *value;
+	struct s_env *next;
 } t_env;
 
 typedef struct s_node {
-    char *data;
-    t_token type;
-    int redirect;
-    int flag;
-    char *path;
-    struct s_node* next;
-    struct s_node *previous;   
+	char *data;
+	t_token type;
+	int redirect;
+	int flag;
+	char *path;
+	struct s_node* next;
+	struct s_node *previous;   
 } t_node;
 
 typedef struct s_excute {
-    char *line;
-    char **cmd;
-    char **RD;
-    struct s_excute *next;
+	char *line;
+	char **cmd;
+	char **RD;
+	struct s_excute *next;
 
 } t_excute;
 
@@ -108,9 +110,9 @@ typedef struct s_lexi
 
 typedef struct s_hrd //stores the herdoc of the shell
 {
-    char *cmd;
-    char **f_name;
-    int x;
+	char *cmd;
+	char **f_name;
+	int x;
 } t_hrd;
 
 //enviornment
@@ -149,7 +151,8 @@ int check_redirection_errors(t_node *head);
 int check_filename_errors(t_node *head);
 int check_pipe_errors(t_node *head);
 int check_invalid_chars(char *data, char *invalid_chars);
-
+int	checker_quotes(char *line);
+bool check_quotes_correctness(const char *line);
 // error_nodes
 void set_redirect_in_nodes(t_node *head);
 int check_redirect(t_node *head);
@@ -174,6 +177,20 @@ char *ft_substr(char *s, int start, int len);
 char *del_substr(char *input, int start, int len);
 char *ft_strjoin(char const *s1, char const *s2);
 char *ft_strndup(const char *str, size_t n);
+int	ft_strncmp(const char *s1, const char *s2, size_t n);
+size_t	ft_strlcat(char *dst, const char *src, size_t dstsize);
+size_t	ft_strlcpy(char *dst, const char *src, size_t size);
+char *ft_strltok(char *str, const char *delim);
+char *ft_strcpy(char *dest, const char *src);
+char *ft_strcat(char *dest, const char *src);
+char *ft_strtok(char *str, const char *delim);
+void	*ft_memset(void *b, int c, size_t len);
+size_t ft_strnlen(const char *s, size_t maxlen);
+char *ft_strncpy(char *dest, const char *src, size_t n) ;
+
+
+
+
 
 // utils_2
 int ft_strlen(const char *s);
@@ -187,7 +204,7 @@ int checker_quotes(char *line);
 void display_list(t_node *head);
 void free_node(t_node *node);
 void free_list(t_node *head);
-char **ft_split(char *str, char c);
+char** ft_split(char* str, char c);
 int is_command(char *data);
 
 //cmd
@@ -212,9 +229,56 @@ int count_cmd(t_node *head);
 void parse_cmd_arr(t_cmd_full *cmd_full, char *input);
 
 
-
 //executor
-void    execute_list(t_cmd_full *cmd_full, t_node *head);
+
+//-------------------------------
+typedef struct s_cd
+{
+    char *cwd;
+    char *prevwd;
+} t_cd;
+
+typedef struct s_alloc
+{
+    void *allocation;
+    struct s_alloc *next; 
+}   t_alloc;
+
+typedef struct s_opens
+{
+    int fd;
+    struct s_opens *next;
+}   t_opens;
+
+typedef struct s_comparsed
+{
+    char ***exec_ready;
+    char ***real_redirects; // [STDIN, HERDOC, STDOUT, APPEND] 
+    char ****garbage_redirects_arr; // with eff // [[OVERRIDE, OVERRIDE, 0], [NOP, NOP, 0]]
+    int     **fds; // [STDIN_FD, HERDOC_RD, HERDOC_WR, STDOUT_FD, APPEND_FD]
+    int     cmd_count;
+    char    **minishell_env;
+    int     exit_status;
+  //  t_cd    *cd;
+} t_comparsed;
+
+
+void    execute_list(t_comparsed *cmds, t_node *head, t_env *env);
 int     check_buildin(char *cmd);
+void    set_fds(t_comparsed *cmds, int **fds);
+void set_redirects(char **redirects, int *fds);
+t_alloc	*ft_lstnew(void *content);
+void	ft_lstadd_back(t_alloc **lst, t_alloc *new);
+t_opens	*ft_lstlast_fd(t_opens *lst);
+t_opens	*ft_lstnew_fd(int content);
+void	ft_lstadd_back_fd(t_opens **lst, t_opens *new);
+
+// final parse
+t_comparsed *parsed_single_cmd(t_node *linked_list, int cmd_count, int exit_stat, char **envp);
+char        **env_toarray(t_env *env, t_comparsed* cmds);
+// to be used with append_env_node!
+
+void *alloc_wrapper(void *allocation);
+void *fail(void *ret);
 
 #endif

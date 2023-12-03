@@ -1,0 +1,243 @@
+	//sv = last(head, APPEND);
+//	if (sv)
+	//	replace[2] = open(sv, O_WRONLY | O_CREAT, S_IWUSR); // check if flags are inherited!
+	//while (head && head->type == ARG
+	//	|| head->type == STDIN_RD || head->type == STDOUT_RD
+	///	|| head->type == APPEND) 
+//	{
+		//if (head->type == STDIN_RD || head->type == STDOUT_RD
+		//	|| head->type == APPEND)
+		//{
+			//if (head->type == STDOUT_RD) // you didn't confuse them?
+
+	//	}
+
+	char **get_args(t_node *head, char *cmd, int x)
+{
+	int c;
+	char **argv;
+	
+	c = 0;
+	argv = ft_calloc (sizeof(char *), ft_strlen(cmd) + 1);
+	if (!argv)
+		return (ERR_FREE_EXIT); // TRACK
+	while (head && c <= x)
+	{
+		if (head->type == OPERATOR)
+			c++;
+		if (c == x)
+			argv[0] = head->data;
+		head = head->next;
+	}
+	// will skip command
+	c = 1;
+	while (head && head->type == ARG
+		|| head->type == STDIN_RD || head->type == STDOUT_RD
+		|| head->type == APPEND) // handles redirectors in middle of command  // what is NONE?
+	{
+		if ((head->type == APPEND || head->type == STDIN_RD
+			|| head->type == STDOUT_RD) && head->next && head->next->type == ARG)
+			head = head->next; // double skip  // must not crash since if a redirector has no target the parser will complain!
+		else if (head->type == ARG)
+			argv[c] = head->data;
+		head = head->next;
+	}
+	return (argv);
+}
+
+int is_builtin(char *cmd)
+{
+	if (!ft_strcmp(cmd, "echo") || !ft_strcmp(cmd, "cd") || !ft_strcmp(cmd, "pwd") 
+	|| !ft_strcmp(cmd, "export")  || !ft_strcmp(cmd, "unset") || !ft_strcmp(cmd, "env")
+	|| !ft_strcmp(cmd, "exit"))
+		return (1);
+	return (0);
+}
+
+char *last(t_node *head, t_token token, t_token tok_sister)
+{
+	t_node *sv;
+
+	sv = head;
+	while (head && head->type != OPERATOR) // assuming that OPERATOR is a PIPE
+	{
+		if (head->type == token || head->type == tok_sister)
+			sv = head;
+		head = head->next;		
+	}
+	if (sv->type == token || sv->type == tok_sister)
+		return (sv->data);
+	return (0);
+}
+
+void chck_pipe(int *is_pipe)
+{
+	
+}
+
+int checknset_redirect(t_node *head, char *cmd, int x, int *replace)
+{
+	int c;
+	t_node *sv;
+	int is_pipes;
+
+	c = 0;
+	while (head && c <= x)
+	{
+		if (head->type == CMD)
+			c++;
+		head = head->next;
+	}
+	c = 1;
+	check_pipe(is_pipes);
+	sv = last(head, STDIN_RD, HERDOC);
+	if (sv)
+	{
+		if (sv->type == STDIN_RD)
+			replace[0] = open(sv, O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR);
+		else
+			herdoc();
+	}
+	sv = last(head, STDOUT_RD, APPEND);
+	if (sv)
+	{
+		if (sv->type == STDOUT_RD)
+			replace[1] = open(sv, O_WRONLY | O_CREAT, S_IWUSR);
+		else
+			replace[1] = open(sv, O_RDONLY, NULL);
+	}
+}
+
+
+char *append_wsp(char *dest, char *src)
+{
+	char *new;
+	int x;
+	int c;
+	
+	new = ft_calloc(sizeof(char), ft_strlen(dest) + ft_strlen(src) + 1 + 1);
+	if (!new)
+		fail();
+	x = 0;
+	c = 0;
+	while (dest && dest[x])
+	{
+		new[c] = dest[x];
+		x++;
+		c++;
+	}
+	if (x)
+		new[c] = ' ';
+	x = 0;
+	while (src && src[x])
+	{
+		new[c] = src[x];
+		x++;
+		c++;	
+	}
+	new[c] = '\x0';
+	return (new);
+}
+
+
+int	ft_strncmp(const char *s1, const char *s2, size_t n)
+{
+	size_t				a;
+	const unsigned char	*s1c;
+	const unsigned char	*s2c;
+
+	a = 0;
+	s1c = (const unsigned char *)s1;
+	s2c = (const unsigned char *)s2;
+	while (s1[a] != 0 && s2[a] != 0 && a < n)
+	{
+		if (s1c[a] > s2c[a])
+			return (1);
+		else if (s1c[a] < s2c[a])
+			return (-1);
+		a++;
+	}
+	if ((s1[a] == 0 || s2[a] == 0) && a < n)
+	{
+		if (s1c[a] > s2c[a])
+			return (1);
+		else if (s1c[a] < s2c[a])
+			return (-1);
+	}
+	return (0);
+}
+
+char *get_cmd(char *cmd_line)
+{
+	int x;
+	char *ret;
+	
+	x = 0; 
+	while (cmd_line[x] && cmd_line[x] != ' ')
+		x++;
+	ret =  ft_calloc(sizeof (char), x);
+	if (!ret)
+		fail();
+	x = 0;
+	while (cmd_line[x] && cmd_line[x] != ' ')
+	{
+		ret = cmd_line[x];
+		x++;
+	}
+	return (cmd_line);
+}
+
+void fds_wapper(int fd)
+{
+	static t_opens *nodes;
+	
+	if (fd == -1)
+	{
+
+		return;	
+	}
+	if (!nodes)
+		nodes = fail(ft_lstnew_fd(fd));
+	else
+		ft_lstadd_back(&nodes, fail(ft_lst_new(fd)));
+}
+
+int close_fds(int fd)
+{
+	if (fd == -1)
+		fds_wrapper(-1);
+	return (1);
+}
+void	ft_lstadd_back_fd(t_opens **lst, t_opens *new)
+{
+	t_opens	*end;
+
+	if (lst == 0)
+		return ;
+	if (*lst == 0)
+	{
+		*lst = new;
+		return ;
+	}
+	end = ft_lstlast(*lst);
+	end->next = new;
+}
+t_opens	*ft_lstlast_fd(t_opens *lst)
+{
+	if (lst == 0)
+		return (0);
+	while (lst->next != 0)
+		lst = lst->next;
+	return (lst);
+}
+t_opens	*ft_lstnew_fd(int content)
+{
+	t_opens	*structure;
+
+	structure = malloc(sizeof(t_opens));
+	if (structure == 0)
+		return (0);
+	structure->fd = content;
+	structure->next = 0;
+	return (structure);
+}

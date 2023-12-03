@@ -126,163 +126,18 @@ void parse_cmd_list(t_cmd_full *cmd_full, t_node *head , t_env *l_env, t_command
 
 }
 
-int     check_buildin(char *cmd)
-{
-    if (ft_strcmp(cmd, "echo") == 0)
-        return (1);
-    else if (ft_strcmp(cmd, "cd") == 0)
-        return (1);
-    else if (ft_strcmp(cmd, "pwd") == 0)
-        return (1);
-    else if (ft_strcmp(cmd, "export") == 0)
-        return (1);
-    else if (ft_strcmp(cmd, "unset") == 0)
-        return (1);
-    else if (ft_strcmp(cmd, "env") == 0)
-        return (1);
-    else if (ft_strcmp(cmd, "exit") == 0)
-        return (1);
-    else
-        return (0);
-
-}
-
-void    exceute_buildin(t_cmd_full *cmd_full, t_node *head)
-{
-    if (ft_strcmp(cmd_full->cmd_arr->single_cmd[0], "echo") == 0)
-        ft_echo(cmd_full->cmd_arr->single_cmd);
-    else if (ft_strcmp(cmd_full->cmd_arr->single_cmd[0], "cd") == 0)
-        ft_cd(cmd_full->cmd_arr->single_cmd);
-    else if (ft_strcmp(cmd_full->cmd_arr->single_cmd[0], "pwd") == 0)
-        ft_pwd(cmd_full->cmd_arr->single_cmd);
-    else if (ft_strcmp(cmd_full->cmd_arr->single_cmd[0], "export") == 0)
-        ft_export(cmd_full->cmd_arr->single_cmd);
-    else if (ft_strcmp(cmd_full->cmd_arr->single_cmd[0], "unset") == 0)
-        ft_unset(cmd_full->cmd_arr->single_cmd);
-    else if (ft_strcmp(cmd_full->cmd_arr->single_cmd[0], "env") == 0)
-        ft_env(cmd_full->cmd_arr->single_cmd);
-    else if (ft_strcmp(cmd_full->cmd_arr->single_cmd[0], "exit") == 0)
-        ft_exit(cmd_full->cmd_arr->single_cmd);
-}
-
-
-void    buildin_single(t_cmd_full *cmd_full, t_node *head)
-{
-    pid_t   PID;
-    int status;
-    int buildin;
-
-    buildin = check_buildin(cmd_full->cmd_arr->single_cmd[0]);
-
-    if (buildin == 1)
-    {
-        printf("buildin\n");
-        exceute_buildin(cmd_full, head);
-    }
-    else
-    {
-        printf("not buildin\n");
-        PID = fork();
-        if (PID == 0)
-        {
-            execve(cmd_full->cmd_arr->single_cmd[0], cmd_full->cmd_arr->single_cmd, NULL);
-            exit(0);
-        }
-        else
-        {
-            waitpid(PID, &status, 0);
-        }
-}
-}
-
-
-void    ex_single_cmd(t_cmd_full *cmd_full, t_node *head)
-{
-    pid_t   PID;
-    int status;
-    int buildin;
-
-    buildin = check_buildin(cmd_full->cmd_arr->single_cmd[0]);
-
-    if (buildin == 1)
-    {
-        printf("buildin\n");
-        execute_solo_buildin(cmd_full, head);
-    }
-    else
-    {
-        printf("not buildin\n");
-        PID = fork();
-        if (PID == 0)
-        {
-            execve(cmd_full->cmd_arr->single_cmd[0], cmd_full->cmd_arr->single_cmd, NULL);
-            exit(0);
-        }
-        else
-        {
-            waitpid(PID, &status, 0);
-        }
-}
-}
-
-void    execute_childp(t_cmd_full *cmd_full, t_node *head, int i)
-{
-    
-}
-
-
-
-void    ex_multiple_cmd(t_cmd_full *cmd_full, t_node *head)
-{
-    pid_t pid;
-    int i;
-
-    i = 0;
-    if (i < cmd_full->cmd_count)
-    {
-        pid = fork();
-        if (pid < 0)
-            exit(EXIT_FAILURE);
-        if (pid == 0)
-        {
-            execute_childp(cmd_full, head, i);
-            exit(0);
-        }
-        else
-        {
-            waitpid(pid, NULL, 0);
-            i++;
-        }
-    }
-
-
-}
-
-
-void    execute_list(t_cmd_full *cmd_full, t_node *head)
-{
-    if (cmd_full->cmd_count == 1)
-        ex_single_cmd(cmd_full, head);
-    else
-        ex_multi_cmd(cmd_full, head);
-
-}
-
-
-
-
-
 int main_loop(t_node *head, char **envp)
 {
     char    *input;
     int     error;
+    int exit_status;
     t_env *l_env = NULL;
     t_cmd_full *cmd_full = NULL;
     t_command *cmd_arr = NULL;
 
     l_env = envp_to_linked_list(envp);
     print_env_list(l_env);
-
+    exit_status = 0;
     while (1)
     {
         input = readline("minishell$: ");
@@ -330,14 +185,14 @@ int main_loop(t_node *head, char **envp)
         parse_cmd_list(cmd_full, head, l_env, cmd_arr, input);
         printf("input; %s\n", input);
 
-        execute_list(cmd_full, head);
         //display_cmd_list(cmd_head);
+        t_comparsed *parsed = parsed_single_cmd(head, cmd_full->cmd_count, cmd_full->exit_status, envp);
+        execute_list(parsed, head, l_env);
+        exit_status = parsed->exit_status;
         free(input);
         free_list(head); // You need to implement this function to free the linked list
         head = NULL; // Reset head
         // free_cmd_list(cmd_head); // You should implement this function to free the t_cmd linked list
-
-
     }
     return (0);
 }
