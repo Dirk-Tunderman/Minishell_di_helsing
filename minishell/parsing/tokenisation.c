@@ -50,6 +50,7 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, char 
 	else if (input[*i] == '\"') // Check for double quotes
 	{
 		data = get_quoted_word(input, i, envp, '\"'); // Get quoted word
+		(*i)++; // Increment i to skip the closing double quote (if present
 		type = QUOTE_ARG;
 	}
 	else if (input[*i] == '\'') // Check for single quotes
@@ -66,37 +67,72 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, char 
 	*prev_type = type;
 }
 
+
+
+
+
+char *get_before_env_var(char *input, int end, int start)
+{
+	char *result;
+	int i = 0;
+
+	result = malloc(end - start + 1);
+	while (start < end)
+	{
+		result[i] = input[start];
+		i++;
+		start++;
+	}
+	result[i] = '\0';
+	return result;
+}
+
+
 char *get_quoted_word(char *input, int *i, char **envp, char quote_type)
 {
-	//bool is_single_quoted = quote_type == '\'';
-	char *result;
-	(*i)++; // Skip the quote at the beginning
-	int start = *i; // Find the start of the word
+    char *result;
+	char *env_variable;
+	char *before_env;
+	int flag = 0;
+	int before_env_end = 0;
+	// int	after_env_start = 0;
 
-	while(input[*i])
-	{
-		if (input[*i] == quote_type && input[*i + 1] == ' ')
+/*VOOR MORGEN
+
+"blahbal$USER is goed" -> blahblahdtunderm is goed -> now memfault
+"$USER""ja" -> dtundermja -> now skips ja
+
+fouten zitten wss in et_env_var(input, i, envp) functie
+*/
+
+
+	(*i)++;
+	int start = *i;
+    while(input[*i] && input[*i] != quote_type)
+    {
+		printf("input: %c\n", input[*i]);
+		if (quote_type == '\"' && input[*i] == '$')
 		{
-			(*i)++;
-			break;
+			before_env_end = *i;
+			flag  = 1;
+        	env_variable = get_env_var(input, i, envp);
 		}
-		else
-			(*i)++;
-	}
-	if (quote_type == '\"' && ft_strchr(&input[start], '$') != NULL)
+		if (input[*i] == '\"')
+			break;
+        (*i)++;
+    }
+	//get string from start to before_env_start
+	if (flag == 1)
 	{
-		result = get_env_var(input, &start, envp);
-		(*i)++;
+		before_env = get_before_env_var(input, before_env_end, start);
+		result = ft_strjoin(before_env, env_variable);
+		if (before_env)
+			free(before_env);
 	}
 	else
-	{
-		// Just duplicate the word without expanding
-		result = ft_strndup(&input[start], *i - start - 1);
-		if (input[*i] == quote_type)
-		 (*i)++; // Skip the closing quote
-		result = remove_quotes(result);
-	}
-	return (result);
+		result = ft_strndup(&input[start], *i - start);
+    return (result);
+
 }
 
 
@@ -263,8 +299,9 @@ char *get_env_var(char *input, int *i, char **envp)
 	char *var_value;
 	char *non_delim_chars;
 	char *result;
-
+	int temp;
 	dollar = 0;
+
 	(*i)++;
 	while (input[*i] == '$')
 	{
@@ -272,30 +309,36 @@ char *get_env_var(char *input, int *i, char **envp)
 		dollar++;
 	}
 	start = *i;
-	while (input[*i] && (ft_isalnum(input[*i]) || input[*i] == '_'))
+	while (input[*i] && (ft_isalnum(input[*i]) || input[*i] == '_')) // takes care of everything before $ 
 		(*i)++;
 
 	non_delim_index = *i;
-	while(input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"')
+	while(input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"') // takes care of everything after $ until space or operator or "
 		(*i)++;
 	end = *i;
 
 	delim = ft_substr(&input[non_delim_index], 0, end - non_delim_index);
 	var_name = ft_strndup(&input[start], non_delim_index - start);
 	var_value = find_env_var(var_name, envp);
+	if (var_value == NULL)
+	{
+		free(var_name);
+
+		printf("var_value == NULL\n");
+		return ("");
+	}
+	temp = *i;
 	if (var_value && dollar % 2 == 0)
 	{
-		while (input[*i] && !ft_isspace(input[*i]) && input[*i] != '\0' && !is_operator(input[*i]))
-			(*i)++;
-		non_delim_chars = ft_strndup(&input[non_delim_index], *i - non_delim_index);
-
+		while (input[temp] && !ft_isspace(input[*i]) && input[*i] != '\0' && !is_operator(input[temp]))
+			temp++;
+		non_delim_chars = ft_strndup(&input[non_delim_index], temp - non_delim_index);
 		result = malloc(ft_strlen(var_value) + ft_strlen(non_delim_chars) + 1 + ft_strlen(delim));
 		ft_strcpy(result, var_value);
 		ft_strcat(result, delim);
-		free(non_delim_chars);
 		return (free(non_delim_chars), result);
 	}
-	else if (var_value && dollar % 2 == 1)
+	if (var_value && dollar % 2 == 1)
 		return (var_name);
 	else
 		return ("");

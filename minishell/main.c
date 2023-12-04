@@ -1,10 +1,15 @@
 #include "minishell.h"
 
-void	set_and_check_redirect(t_node *head)
+int	set_and_check_redirect(t_node *head)
 {
+
 	set_redirect_in_nodes(head);
-	check_redirect(head);
-	check_redirect_pipe(head);
+
+	if (check_redirect(head) == -1)
+        return (-1);
+	if (check_redirect_pipe(head) == -1)
+        return (-1);
+    return (1);
 }
 
 void	resolve_path_and_commands(t_node *head, char **envp)
@@ -141,8 +146,6 @@ void parse_cmd_list(t_cmd_full *cmd_full, t_node *head , t_env *l_env, t_command
     printf("CMD_FULL->cmd_arr[0]: %s\n", cmd_full->cmd_arr->single_cmd[0]);
     printf("CMD_FULL->cmd_count: %d\n", cmd_full->cmd_count);
 
-
-
 }
 
 
@@ -178,7 +181,7 @@ int main_loop(t_node *head, char **envp)
 			continue;
 		}
 		lexer(input, &head, envp);
-		error = error_all_check(head, input);
+        error = error_all_check(head, input);
 		if (error)
 		{
 			printf("error\n");
@@ -187,7 +190,15 @@ int main_loop(t_node *head, char **envp)
 			free(input);
 			continue;
 		}
-		set_and_check_redirect(head);
+		if (set_and_check_redirect(head) == -1)
+        {
+            printf("error\n");
+            free_list(head);
+            head = NULL;
+            free(input);
+            continue;
+        }
+
 		resolve_path_and_commands(head, envp);
 		display_list(head);
 		printf("\n");

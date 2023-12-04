@@ -48,7 +48,6 @@ char *find_executable(char *command, char **envp)
         char *full_path = malloc(strlen(path) + strlen(command) + 2);
         if (full_path == NULL) 
         {
-            free(path_env_copy);
             return (free(path_env_copy), NULL);
         }
         ft_strcpy(full_path, path);

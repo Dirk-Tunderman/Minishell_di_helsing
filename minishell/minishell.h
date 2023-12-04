@@ -124,6 +124,10 @@ char *get_quoted_word(char *input, int *i, char **envp, char quote_type);
 char *remove_quotes(char *input);
 char *get_word(char *input, int *i);
 
+char *get_before_env_var(char *input, int end, int start);
+
+
+
 int check_end_token_quote(char *input, char character, int start);
 int	check_end_token_alnum(char *input, int start);
 char *find_env_var(const char *var_name, char **envp);
@@ -153,10 +157,11 @@ int check_invalid_chars(char *data, char *invalid_chars);
 int	checker_quotes(char *line);
 bool check_quotes_correctness(const char *line);
 // error_nodes
-void set_redirect_in_nodes(t_node *head);
+void  set_redirect_in_nodes(t_node *head);
 int check_redirect(t_node *head);
 int check_redirect_pipe(t_node *head);
 void display_excute_list(t_excute *head);
+int	set_and_check_redirect(t_node *head);
 
 //resolution
 char *find_executable(char *command, char **envp);
