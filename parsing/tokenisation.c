@@ -450,26 +450,17 @@ char *get_env_var(char *input, int *i, t_env *l_env)
 		result = malloc(ft_strlen(var_value) + 1 + ft_strlen(delim)); // + ft_strlen(non_delim_chars)
 		ft_strcpy(result, var_value);
 		ft_strcat(result, delim);
-		ft_strcat(result, chase_quotes(input[end])); // bug fix by eamrati [!!!!!!!!!!!!!]
 		printf("indicator 0 %s\n", result);
 		return (result);//(free(non_delim_chars), result);
 	}
-	else if (dollar % 2 == 1)
+	if (var_value && dollar % 2 == 1)
 	{
 		printf("indicator 1 %s\n", var_name);
-	//	cat these in order: cat(result, varname, delim, chase_quotes(input[end])); 
 		return (var_name);
 	}
 	else
-		return (var_name);
-	//else
-	//	return ("");
+		return ("");
 }
-
-//1. check if current input[i] is a quote of a certain type
-//2. loop until you find other quote of the same type
-//3. if found, append into buffer
-//4. if current input[i] is another quote repeat step 2, else result the result
 
 char *find_env_var(const char *var_name, t_env *l_env)
 {
