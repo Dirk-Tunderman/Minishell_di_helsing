@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 20:39:26 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/05 10:04:30 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/05 14:57:57 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ char **append(char **exec_ready, char *data)
 	if (!newexecready)
 	{
 		free(exec_ready);
-		fail(0);
+		FAIL
 	}
 	c = 0;
 	while (c < x)
@@ -175,7 +175,7 @@ t_comparsed *parsed_single_cmd(t_node *linked_list, int cmd_count, int exit_stat
 	x = 0;
 	parsed = alloc_wrap(ft_calloc(sizeof(t_comparsed), 1));
 	parsed->exit_status = exit_stat;
-	parsed->uptodate_env = envp;
+	parsed->envp = envp;
 	parsed->cmd_count = cmd_count;
 	parsed->exec_ready = alloc_wrap(ft_calloc (sizeof(char **), cmd_count + 1));
 	parsed->real_redirects = alloc_wrap(ft_calloc (sizeof(char **), cmd_count + 1));
@@ -204,31 +204,32 @@ int node_count(t_env *env)
 	return (x);
 }
 
-char **env_toarray(t_env *env, t_comparsed* cmds, char **original_envp)
+char **env_toarray(t_env *env)
 {
 	char **envp;
 	int		x;
 	char *tmp;
 
 	x = 0;
-	(void) original_envp;
 //	if (cmds->uptodate_env != original_envp)
 //	{
 //		while (cmds->uptodate_env && cmds->uptodate_env[x])
 //			free(cmds->uptodate_env[x++]);
 //		free(cmds->uptodate_env);
 //	}
-	cmds->uptodate_env = 0;
 	envp = alloc_wrap(ft_calloc(sizeof(char *), node_count(env) + 1)); //+ 1)); <---- what was this for?
 	while (env)
 	{
-		tmp = ft_strjoin(env->key, "="); // This will be freed in fail()
-		if (!tmp)
-			fail(0);
-		envp[x] = alloc_wrap(ft_strjoin(tmp, env->value));
-		free(tmp);
+		if (!env->only_export)
+		{
+			tmp = ft_strjoin(env->key, "="); // This will be freed in fail()
+			if (!tmp)
+				fail_exit();
+			envp[x] = alloc_wrapper(ft_strjoin(tmp, env->value), 0, tmp);
+			free(tmp);
+			x++;
+		}
 		env = env->next;
 	}
-	cmds->uptodate_env = envp; // just to not lose the pointer
 	return (envp);
 }

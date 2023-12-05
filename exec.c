@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/30 13:48:06 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/05 10:43:47 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/05 14:51:18 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,7 @@ void set_pipe(int *_pipe, int sv_next)
 	if (sv_next != -1)
 		close(_pipe[1]);
 	if (pipe(_pipe))
-		fail(0); //<<--- reset this
+		FAIL //<<--- reset this
 }
 
 // pipes, just take the endpoint you need and forget the other
@@ -113,36 +113,36 @@ void overridefds(t_comparsed *cmds, int x, int *_pipe, int sv_next, char *cmd)
 	if (cmds->fds[x][3] != -1)
 	{
 		if(dup2(cmds->fds[x][3], STDOUT_FILENO) == -1)
-			fail(0);// reset instead
+			FAIL// reset instead
 	}
 	else if (cmds->fds[x][4] != -1)
 	{
 		if (dup2(cmds->fds[x][4], STDOUT_FILENO) == -1)
-			fail(0);
+			FAIL
 	}
 	else if (x < cmds->cmd_count - 1)
 	{
 		if (dup2(_pipe[1], STDOUT_FILENO) == -1)
-			fail(0);
+			FAIL
 	}
 	if (cmds->fds[x][0] != -1)
 	{
 			//	printf("lol1");
 
 		if(dup2(cmds->fds[x][0], STDIN_FILENO) == -1)
-			fail(0);
+			FAIL
 	}
 	else if (cmds->fds[x][1] != -1)
 	{
 			//	printf("lol2");
 		if(dup2(cmds->fds[x][1], STDIN_FILENO) == -1)
-			fail(0);
+			FAIL
 	}
 	else if (x > 0)
 	{
 		//printf("lol3");
 		if (dup2(sv_next, STDIN_FILENO) == -1)
-			fail(0);
+			FAIL
 		//printf("passed");
 	}
 	(void) cmd;
@@ -188,8 +188,11 @@ void    execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node
 	int chld_pid;
 	int sv_next;
 	int _pipe[2];
+	static char	**uptodate_env;
 	// check null cmd_full
 
+	if (!uptodate_env)
+		uptodate_env = original_envp;
 	restore_fds(); // this should be called in main instead, for first set
 	// mind signals ! DEC 4
 	sv_next = -1;
@@ -209,18 +212,18 @@ void    execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node
 			if (is_builtin(cmds->exec_ready[x][0]) && !det_subshell(cmds))
 			{
 				call_respective(cmds->exec_ready[x], &cmds->exit_status, env);
-				env_toarray(env, cmds, original_envp);
+				uptodate_env = env_toarray(env);
 			}
 			else
 			{
 				chld_pid = fork();
 				if (chld_pid == -1)
-					fail(0); //<<--- reset this//reset("Issue forking child!"); //
+					FAIL	//<<--- reset this//reset("Issue forking child!"); //
 				if (getpid() != parent_id)
 				{
 					if (is_builtin(cmds->exec_ready[x][0]))
 						call_respective(cmds->exec_ready[x], &cmds->exit_status, env);
-					else if (execve(fetch_pathll(cmds->exec_ready[x][0], head), cmds->exec_ready[x], cmds->uptodate_env) == -1)
+					else if (execve(fetch_pathll(cmds->exec_ready[x][0], head), cmds->exec_ready[x], uptodate_env) == -1)
 						fail_exit(); //set the valid return value here! Dec 3
 						// if execve fails in child, the child's heap must be freed! Like we have duplicate minishells!
 					fail_exit();

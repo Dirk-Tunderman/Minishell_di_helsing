@@ -6,14 +6,34 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 21:54:31 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/05 10:53:34 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/05 14:55:03 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
+void update_oldwd(char *old, t_env *env)
+{
+	char *sv;
+
+	sv = ft_strjoin("OLDPWD=", old);
+	if (!sv)
+		fail_exit();
+	save_alloc(sv);
+	while (env && _ft_strcmp(env->key, "OLDPWD")) // env->key should never equal null otherwise it's a crash
+			env = env->next;
+	if (!env)
+		append_env_node(&env, sv);
+	else
+		env->value = old;
+	free(sv);
+}
+
 int change_dir(char **args, t_env *env, int *exit_stat)
 {
+	char *old;
+
+	old = alloc_wrap(getcwd(NULL, 0));
 	if (!args[0]) // always the case that this might be null, since no data is copied even though the allocation is done (in the parsing)
 	{
 		while (env && _ft_strcmp(env->key, "HOME")) // env->key should never equal null otherwise it's a crash
@@ -25,6 +45,7 @@ int change_dir(char **args, t_env *env, int *exit_stat)
 			*exit_stat = 1;
 			return (printf("Failure to change directory!\n"), 1);
 		}
+		update_oldwd(old, env);
 		return (0);
 	}
 	if (chdir(args[0]) == -1)
@@ -32,6 +53,7 @@ int change_dir(char **args, t_env *env, int *exit_stat)
 		*exit_stat = 1;
 		return (printf("Failure to change directory!\n"), 1); // can't handle everything, need errno which is forbidden
 	}
+	update_oldwd(old, env);
 	*exit_stat = 0;
 	return (0);
 }
@@ -114,17 +136,17 @@ int valid_key(char *key)
 	return (0);
 }
 
-int chck_node(t_env *env, char *arg, int *exit_stat)
+int chck_node(t_env *env, char *arg)
 {
 	char *key;
 	char *value;
 
-	*exit_stat = 1;
 	split_env_var(arg, &key, &value); // check for malloc fail
-	if (!value) // this does not check for malloc, instead it checks if there is no equal sign!
-		return (-1);//(free(key), -1); // NOT VALUE THEN add key, but do not append it to env! (maybe using a flag or smth)
+	//(free(key), -1); // NOT VALUE THEN add key, but do not append it to env! (maybe using a flag or smth)
 	if (!valid_key(key))
 		return (-1);
+	if (!value)
+		return (2);
 	while (env && _ft_strcmp(env->key, key))
 		env = env->next;
 	if (env)
@@ -143,6 +165,7 @@ int export(char **args, t_env *env, int *exit_stat)
 	int c;
 	int opti;
 
+	*exit_stat = 1;
 	c = 0;
 	x = 0;
 	while (args && args[x])
@@ -152,25 +175,24 @@ int export(char **args, t_env *env, int *exit_stat)
 		while (env)
 		{
 			if (printf("declare -x %s=%s\n", env->key, env->value) < 0)
-			{
-				*exit_stat = 1;
 				return (1);
-			}
 			env = env->next;
 		}
 	}
 	else
 		while (c < x)
 		{
-			opti = chck_node(env, args[c], exit_stat);
+			opti = chck_node(env, args[c]);
 			if (opti == 0)
 				append_env_node(&env, args[c++]);
 			else if (opti == 1)
 				c++;
 			else if (opti == -1)
-			{
-				*exit_stat = 1;
 				return (printf("Invalid identifier!\n"), 1);
+			else if (opti == 2)
+			{
+				append_env_node(&env, args[c++]);
+				env->only_export = 1;
 			}
 		}
 	*exit_stat = 0;
@@ -198,12 +220,7 @@ int unset(char **args, t_env *env, int *exit_stat)
 			env = env->next;
 		}
 		if (env)
-		{
-			//free(env->key);
-			//free(env->value);
-			prev->next = env->next;
-			//free(env); LATER GARBAGE COLLECTION
-		}
+			prev->next = env->next; // do not free (double free)!
 		env = sv;
 		x++;
 	}

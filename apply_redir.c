@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/02 13:45:30 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/05 09:42:00 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/05 14:31:12 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ void heredoc(char *delimiter, int *fds)
 
 	result = 0;
 	if (pipe(fds))
-		fail(0);
+		FAIL
 	result = readline("> ");
 	if (!result)
 	{
@@ -52,7 +52,7 @@ void set_redirects(char **redirects, int *fds)
 		if (fds[0] == -1)
 		{
 			printf("Error opening file %s\n", redirects[0]); // SET ERROR CODE!
-			fail(0); // these should be reset() instead
+			FAIL// these should be reset() instead
 		}	
 	}
 	if (redirects[2])
@@ -61,7 +61,7 @@ void set_redirects(char **redirects, int *fds)
 		if (fds[3] == -1)
 		{
 			printf("Error opening file %s\n", redirects[2]); // SET ERROR CODE!
-			fail(0);
+			FAIL
 		}
 	}
 	if (redirects[3])
@@ -70,7 +70,7 @@ void set_redirects(char **redirects, int *fds)
 		if (fds[4] == -1)
 		{
 			printf("Error opening file %s\n", redirects[3]); // SET ERROR CODE!
-			fail(0); 
+			FAIL
 		}
 	}
 }

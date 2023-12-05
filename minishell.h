@@ -83,6 +83,7 @@ typedef struct s_env //stores the environment
 {
 	char *key;
 	char *value;
+	int		only_export;
 	struct s_env *next;
 } t_env;
 
@@ -267,14 +268,14 @@ typedef struct s_comparsed
     char ****garbage_redirects_arr; // with eff // [[OVERRIDE, OVERRIDE, 0], [NOP, NOP, 0]]
     int     **fds; // [STDIN_FD <, HERDOC_RD, HERDOC_WR, STDOUT_FD >, APPEND_FD >>]
     int     cmd_count;
-    char    **uptodate_env;
+    char    **envp;
     int     exit_status;
   //  t_cd    *cd;
 } t_comparsed;
 
-void *alloc_wrapper(void *allocation, int mode);
+void *alloc_wrapper(void *allocation, int mode, void *additional);
 
-#define alloc_wrap(...) alloc_wrapper(__VA_ARGS__, 0)
+#define	FAIL	fail(0, printf("File %s:\nLine %d: Function %s\n", __FILE__, __LINE__, __func__));
 
 void	*ft_calloc(size_t count, size_t size);
 void		call_respective(char **cmd, int *exit_stat, t_env *env);
@@ -291,13 +292,15 @@ void	ft_lstadd_back_fd(t_opens **lst, t_opens *new);
 
 // final parse
 t_comparsed *parsed_single_cmd(t_node *linked_list, int cmd_count, int exit_stat, char **envp);
-char **env_toarray(t_env *env, t_comparsed* cmds, char **original_envp);
+char **env_toarray(t_env *env);
 unsigned char _ft_strcmp(char *str1, char *str2);
 // to be used with append_env_node!
 
-void *fail(void *ret);
+void *fail(void *ret, int smth);
 void restore_fds();
 void fail_exit();
+void save_alloc(void *sv);
+void *alloc_wrap(void *arg);
 
 // builtins
 int unset(char **args, t_env *env, int *exit_stat);
