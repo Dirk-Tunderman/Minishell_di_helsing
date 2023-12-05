@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/30 13:48:06 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/05 14:51:18 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/05 21:40:09 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,7 +193,7 @@ void    execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node
 
 	if (!uptodate_env)
 		uptodate_env = original_envp;
-	restore_fds(); // this should be called in main instead, for first set
+	 // this should be called in main instead, for first set
 	// mind signals ! DEC 4
 	sv_next = -1;
 	x = 0;
