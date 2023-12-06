@@ -199,6 +199,7 @@ int main_loop(t_node *head, char **envp)
     //print_env_list(l_env);
 	while (1)
 	{
+        sig_init();
         if(!input)
             printf("\n");
         input = readline("minishell$: ");

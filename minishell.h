@@ -11,6 +11,7 @@
 #include <readline/history.h>
 #include <stdbool.h>
 #include <dirent.h>
+#include <signal.h>
 // #include "libft/libft.h"
 
 #define MAX_ARGS 1024
@@ -119,7 +120,10 @@ typedef struct s_hrd //stores the herdoc of the shell
 
 //enviornment
 char get_env_total();
-int spaceflag(char *input, int *i);
+int spaceflag_d_quote(char *input, int *i);
+int	spaceflag_word(char *input, int *i);
+int space_flag_s_quote(char *input, int *i);
+int	spaceflag_op(char *input, int *i);
 
 // tokenisation
 void lexer(char *input, t_node **head, t_env *l_env);
@@ -196,6 +200,9 @@ void	*ft_memset(void *b, int c, size_t len);
 size_t ft_strnlen(const char *s, size_t maxlen);
 char *ft_strncpy(char *dest, const char *src, size_t n) ;
 
+//signals
+void    sig_handler(int signo);
+void sig_init(void);
 
 
 

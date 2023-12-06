@@ -17,7 +17,7 @@ void lexer(char *input, t_node **head, t_env *l_env)
 	}
 }
 
-int spaceflag(char *input, int *i)
+int spaceflag_d_quote(char *input, int *i)
 {
 	int temp = *i;
 	int space_flag = 0;
@@ -25,6 +25,63 @@ int spaceflag(char *input, int *i)
 	while (input[temp] && input[temp] != '\"')
 		temp++;
 	if (input[temp + 1] == ' ')
+		space_flag = 1;
+	printf("space_flag: %d\n", space_flag);
+	return (space_flag);
+}
+
+
+int	spaceflag_word(char *input, int *i)
+{
+	int temp = *i;
+	int space_flag = 0;
+	temp++;
+	while (input[temp] && input[temp] != '\"' && input[temp] != '\'')
+		temp++;
+	if (input[temp + 1] == ' ')
+		space_flag = 1;
+	printf("space_flag: %d\n", space_flag);
+	return (space_flag);
+}
+
+int space_flag_s_quote(char *input, int *i)
+{
+	int temp = *i;
+	int space_flag = 0;
+	temp++;
+	while (input[temp] && input[temp] != '\'')
+		temp++;
+	if (input[temp + 1] == ' ')
+		space_flag = 1;
+	printf("space_flag: %d\n", space_flag);
+	return (space_flag);
+}
+
+int	spaceflag_env(char *input, int *i)
+{
+	int temp = *i;
+	int space_flag = 0;
+	temp++;
+	while (input[temp] && input[temp] != '\'' && input[temp != '\"'] && input[temp] != '$')
+		temp++;
+	if (input[temp + 1] == ' ')
+		space_flag = 1;
+	printf("space_flag: %d\n", space_flag);
+	return (space_flag);
+}
+
+int	spaceflag_op(char *input, int *i)
+{
+	int temp = *i;
+	int space_flag = 0;
+	//temp++;
+	printf("input %s\n", input);
+	printf("temp: %d\n", temp);
+	printf("before while sp_op");
+	while (input[temp] == '<' || input[temp] == '>' || input[temp] == '|')
+		temp++;
+	printf("after while sp_op");
+	if (input[temp] == ' ')
 		space_flag = 1;
 	printf("space_flag: %d\n", space_flag);
 	return (space_flag);
@@ -54,15 +111,12 @@ char *get_before_env_varr(char *input, int temp)
 	int i = 0;
 	printf("input: %s\n", input);
 	while ((input[temp] != ' ') && input[temp])
-	{
-		printf("input[temp]: %c\n", input[temp]);
 		temp++;
-	}
 	printf("temp: %d\n", temp);
 	result = malloc(temp - start + 1);
 	if (!result)
 		return (NULL);
-	printf("temp: %d\n", temp);
+
 	while (start < temp)
 	{
 		result[i] = input[start];
@@ -70,9 +124,10 @@ char *get_before_env_varr(char *input, int temp)
 		start++;
 	}
 	result[i] = '\0';
-	printf("result: %s\n", result);
 	return (result);
 }
+
+
 
 
 
@@ -89,11 +144,14 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env
 	{	
 		temp = *i;
 		before_env = get_before_env_varr(input, temp); // your parsing needs to work like this eamrati
+		space_flag = spaceflag_env(input, i);
 		data = get_env_var(input, i, l_env); // Get environment variable
 		type = ARG;
 	}
 	else if (is_operator(input[*i])) // Check for operator
 	{
+		printf("go in operator\n");
+		space_flag = spaceflag_op(input, i);
 		// Check if next character is also '>', indicating a '>>' operator
 		if (input[*i] == '>' && input[*i + 1] == '>')
 		{
@@ -103,7 +161,6 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env
 		else if (input[*i] == '<' && input[*i + 1] == '<')
 		{
 			data = ft_strdup("<<");
-
 			(*i)++; // Increment i to skip the next '<'
 		}
 		else
@@ -115,7 +172,8 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env
 	}
 	else if (input[*i] == '\"') // Check for double quotes
 	{
-		space_flag = spaceflag(input, i);
+		printf("go in double quote\n");
+		space_flag = spaceflag_d_quote(input, i);
 		data = get_quoted_word(input, i, l_env, '\"'); // Get quoted word
 		(*i)++; // Increment i to skip the closing double quote (if present
 		type = QUOTE_ARG;
@@ -123,11 +181,13 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env
 	}
 	else if (input[*i] == '\'') // Check for single quotes
 	{
+		space_flag = space_flag_s_quote(input, i);
 		data = get_quoted_word(input, i, l_env, '\''); // Get quoted word
 		type = QUOTE_ARG;
 	}
 	else
 	{
+		space_flag = spaceflag_word(input, i);
 		data = get_word(input, i); // Get word
 		type = ARG;
 	}
@@ -162,6 +222,7 @@ char *get_quoted_word(char *input, int *i, t_env *l_env, char quote_type)
 	int before_env_end = 0;
 
 	(*i)++;
+	printf("go in quotedword\n");
 	int start = *i;
     while(input[*i] && input[*i] != quote_type)
     {
@@ -185,7 +246,7 @@ char *get_quoted_word(char *input, int *i, t_env *l_env, char quote_type)
 	}
 	else
 		result = ft_strndup(&input[start], *i - start);
-
+	printf("result: %s\n", result);
     return (result);
 
 }
@@ -226,7 +287,7 @@ char *get_word(char *input, int *i)
 	char *word;
 
 	start = *i;
-	while (input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
+	while (input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i + 1]) && input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
 	{
 		if (input[*i] == '\"')
 		{
@@ -481,20 +542,20 @@ char *find_env_var(const char *var_name, t_env *l_env)
     return NULL;
 }
 
-void check_and_set_redirect(t_node *head) 
+void check_and_set_redirect(t_node *head) // check here also what the type is, if quote arg then dont transform into other type.
 {
 	t_node *current;
 
 	current = head;
 	while (current != NULL)
 	{
-		if (ft_strcmp(current->data, "<") == 0)
+		if ((ft_strcmp(current->data, "<") == 0) && current->type != QUOTE_ARG)
 			current->type = STDIN_RD;
-		else if (ft_strcmp(current->data, ">") == 0)
+		else if ((ft_strcmp(current->data, ">") == 0) && current->type != QUOTE_ARG)
 			current->type = STDOUT_RD;
-		else if (ft_strcmp(current->data, ">>") == 0)
+		else if ((ft_strcmp(current->data, ">>") == 0) && current->type != QUOTE_ARG)
 			current->type = APPEND;
-		else if (ft_strcmp(current->data, "<<") == 0)
+		else if ((ft_strcmp(current->data, "<<") == 0) && current->type != QUOTE_ARG)
 			current->type = HERDOC;
 		current = current->next;
 	}
