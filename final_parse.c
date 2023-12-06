@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 20:39:26 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/05 14:57:57 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/05 21:51:01 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ char **append(char **exec_ready, char *data)
 	x = 0;
 	while (exec_ready && exec_ready[x])
 		x++;
-	newexecready = ft_calloc(sizeof(char *), x + 1 + 1); // one for new, one for termination
+	newexecready = ft_calloc(sizeof(char *), x + 1 + 1);
 	if (!newexecready)
 	{
 		free(exec_ready);
@@ -211,18 +211,12 @@ char **env_toarray(t_env *env)
 	char *tmp;
 
 	x = 0;
-//	if (cmds->uptodate_env != original_envp)
-//	{
-//		while (cmds->uptodate_env && cmds->uptodate_env[x])
-//			free(cmds->uptodate_env[x++]);
-//		free(cmds->uptodate_env);
-//	}
 	envp = alloc_wrap(ft_calloc(sizeof(char *), node_count(env) + 1)); //+ 1)); <---- what was this for?
 	while (env)
 	{
 		if (!env->only_export)
 		{
-			tmp = ft_strjoin(env->key, "="); // This will be freed in fail()
+			tmp = ft_strjoin(env->key, "=");
 			if (!tmp)
 				fail_exit();
 			envp[x] = alloc_wrapper(ft_strjoin(tmp, env->value), 0, tmp);
