@@ -172,11 +172,14 @@ void parse_cmd_list(t_cmd_full **cmd_full, t_node *head , t_env *l_env, t_comman
 //--------------------------------------------------------------------------------------//
 
 
+
+
+
 int main_loop(t_node *head, char **envp)
 {
 	char    *input;
 	int     error;
-	t_env *l_env;
+	static t_env *l_env;
     
     
     ///--------------------------------------//
@@ -193,13 +196,16 @@ int main_loop(t_node *head, char **envp)
     // exit_status = 0;
 	///--------------------------------------//
     
+
+
+
     input = "";
-    l_env = NULL;
-	l_env = envp_to_linked_list(envp);
+    if (!l_env)
+    	l_env = envp_to_linked_list(envp);
+    
     //print_env_list(l_env);
 	while (1)
 	{
-        sig_init();
         if(!input)
             printf("\n");
         input = readline("minishell$: ");
@@ -262,6 +268,7 @@ int     main(int argc, char **argv, char **envp)
 	(void)argv;
 	
     head = NULL;
+    sig_init();
 	return (main_loop(head, envp)); // Add envp to main_loop
 }
 
