@@ -139,3 +139,27 @@ int	ft_strncmp(const char *s1, const char *s2, size_t n)
 	}
 	return (0);
 }
+
+char *ft_strtok_c(char *str, char delim) 
+{
+	static char *last;
+    static char *last_character;
+
+    last_character = last;
+	if (str)
+    {
+		last = str;
+        last_character = str;
+    }
+    if (last == NULL)
+		return NULL;
+	last = ft_strchr(last, delim);
+	if (last == NULL)
+		return (last_character);
+	else
+	{
+		*last = '\0';
+		last++;
+	}
+	return (last_character);
+}

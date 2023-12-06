@@ -164,9 +164,7 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env
 			(*i)++; // Increment i to skip the next '<'
 		}
 		else
-		{
 			data = char_to_str(input[*i]); // Convert char to string
-		}
 		type = OPERATOR;
 		(*i)++; // Increment i to skip the operator character
 	}
@@ -222,33 +220,24 @@ char *get_quoted_word(char *input, int *i, t_env *l_env, char quote_type)
 	int before_env_end = 0;
 
 	(*i)++;
-	printf("go in quotedword\n");
 	int start = *i;
+	result = "";
     while(input[*i] && input[*i] != quote_type)
     {
-		if (quote_type == '\"' && input[*i] == '$')
+		if (quote_type == '\"' && input[*i] == '$')// issue
 		{
 			before_env_end = *i;
 			flag  = 1;
         	env_variable = get_env_var(input, i, l_env);
+			before_env = get_before_env_var(input, before_env_end, start);
+			result = ft_strjoin(result, ft_strjoin(before_env, env_variable));
+			start = *i;
+			continue;
 		}
-		if (input[*i] == '\"')
-			break;
         (*i)++;
     }
-	//get string from start to before_env_start
-	if (flag == 1)
-	{
-		before_env = get_before_env_var(input, before_env_end, start);
-		result = ft_strjoin(before_env, env_variable);
-		if (before_env)
-			free(before_env);
-	}
-	else
-		result = ft_strndup(&input[start], *i - start);
-	printf("result: %s\n", result);
+	result = ft_strjoin(result, get_before_env_var(input, *i, start));
     return (result);
-
 }
 
 
@@ -454,22 +443,11 @@ char *get_env_var(char *input, int *i, t_env *l_env)
 	char *delim;
 	char *var_name;
 	char *var_value;
-	//char *non_delim_chars;
 	char *result;
-//	int temp;
-	//int temp2 = *i;
+
 	dollar = 0;
-
-	// temp2--;
-	// while (input[temp2] == ' ' && temp2 > 0)
-	// 	temp2--;
-
-	//printf("input[temp2]: %c\n", input[temp2]);
-
-
-//------------ let's see later
 	(*i)++;
-	while (input[*i] == '$') // takes care of all $ in a row
+	while (input[*i] == '$')
 	{
 		(*i)++;
 		dollar++;
@@ -480,21 +458,32 @@ char *get_env_var(char *input, int *i, t_env *l_env)
 	start = *i;
 	printf("input[*i]: %c\n", input[*i]);
 
-	while (input[*i] && (ft_isalnum(input[*i]) || input[*i] == '_')) // takes care of everything before $ 
+	if (input[*i] == '?')
+	{
 		(*i)++;
-	printf("input[*i]: %c\n", input[*i]);
-
-//----------- let's see later
-	non_delim_index = *i;
-	while(input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"' && input[*i] != '$') // takes care of everything after $ until space or operator or "
+		non_delim_index = *i;
+		while(input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"' && input[*i] != '$') // takes care of everything after $ until space or operator or "
+			(*i)++;
+		end = *i;
+		delim = ft_substr(&input[non_delim_index], 0, end - non_delim_index);
+		var_value = ft_itoa(exit_status(1001));
+	}
+	else
+	{
+		while (input[*i] && (ft_isalnum(input[*i]) || input[*i] == '_' )) // takes care of everything before $ 
+			(*i)++;
+		printf("input[*i]: %c\n", input[*i]);
+		non_delim_index = *i;
+		while(input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"' && input[*i] != '$') // takes care of everything after $ until space or operator or "
 		(*i)++;
-//-----------
 
-	end = *i; // guaranteed anyway
+		end = *i; 
 
-	delim = ft_substr(&input[non_delim_index], 0, end - non_delim_index);
-	var_name = ft_strndup(&input[start], non_delim_index - start);
-	var_value = find_env_var(var_name, l_env);
+		delim = ft_substr(&input[non_delim_index], 0, end - non_delim_index);
+		var_name = ft_strndup(&input[start], non_delim_index - start);
+		var_value = find_env_var(var_name, l_env);
+	}
+
 	printf("var_value: %s\n", var_value);
 	if (var_value == NULL)
 	{
@@ -502,17 +491,13 @@ char *get_env_var(char *input, int *i, t_env *l_env)
 		printf("var_value == NULL\n");
 		return ("");
 	}
-//	temp = *i;
 	if (var_value && dollar % 2 == 0)
 	{
-	//	while (input[temp] && !ft_isspace(input[*i]) && !is_operator(input[temp]))
-	//		temp++;
-	//	non_delim_chars = ft_strndup(&input[non_delim_index], temp - non_delim_index);
-		result = malloc(ft_strlen(var_value) + 1 + ft_strlen(delim)); // + ft_strlen(non_delim_chars)
+		result = malloc(ft_strlen(var_value) + 1 + ft_strlen(delim));
 		ft_strcpy(result, var_value);
 		ft_strcat(result, delim);
 		printf("indicator 0 %s\n", result);
-		return (result);//(free(non_delim_chars), result);
+		return (result);
 	}
 	if (var_value && dollar % 2 == 1)
 	{

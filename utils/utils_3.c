@@ -47,25 +47,34 @@ bool check_quotes_correctness(const char *line)
 int	checker_quotes(char *line)
 {
 	int	i;
-	int	j;
-	int	k;
+    int complete;
 
 	i = 0;
-	j = 0;
-	k = 0;
-	while (line[i]) // check even and uneven number of quotes
-	{
-		if (line[i] == '\"')
-			j++;
-		if (line[i] == '\'')
-			k++;
-		i++;
-	}
-	if (j % 2 != 0 || k % 2 != 0)
-		return (0);
-   // if (check_quotes_correctness(line) == false)
-   //     return (0);
-	return (1);
+    complete = 1;
+	while (line[i])
+    {
+        if (line[i] == '\'')
+        {
+            i++;
+            while (line[i] && line[i] != '\'')
+                i++;
+            if (!line[i])
+                complete = 0;
+        }
+        else if (line[i] == '"')
+        {
+            i++;
+            while (line[i] && line[i] != '"')
+                i++;
+            if (!line[i])
+                complete = 0;
+        }
+        if (line[i])
+            i++;
+    }
+    if (!complete)
+        return (printf("Quoting error!\n"), 0);
+    return (1);
 }
 
 void    display_list(t_node *head)
@@ -134,12 +143,4 @@ char** ft_split(char* str, char c)
     result[k] = NULL; // null-terminator for the array of strings
 
     return result;
-}
-
-int is_command(char *data) 
-{
-    if (data && isalpha(data[0])) {  // If the first character is a letter
-        return 1;
-    }
-    return 0;
 }

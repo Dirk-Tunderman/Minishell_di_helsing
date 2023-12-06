@@ -30,14 +30,14 @@ typedef struct s_redirect t_redirect;
 	OPERATOR,
 	ARG,
 	QUOTE_ARG,
-	NONE, 
+	NONE, // useless
 	CMD,
 	BUILT_IN,
 	STDIN_RD,
 	STDOUT_RD,
 	HERDOC,
 	APPEND,    
-	REPROMPT,
+	REPROMPT,// useless
 } t_token;
 
 typedef struct s_data //stores the general data of the shell
@@ -63,7 +63,6 @@ typedef struct s_command {
 	t_redirect		*redirect_arr;
 	int				redirect_count;
 }	t_command;
-
 
 typedef struct s_cmd_full
 {
@@ -153,9 +152,9 @@ void check_and_set_redirect(t_node *head);
 char *expand_env_in_word(const char *word, t_env *l_env, bool is_single_quoted);
 
 // error_handling
-int error_all_check(t_node *head, char *input);
+int error_all_check(t_node *head);
 int check_operator_errors(t_node *head);
-int check_operator_start_end(t_node *current, t_node *previous, t_node *next);
+int check_operator_start_end(t_node *current, t_node *previous);
 int check_operator_no_cmd(t_node *current, t_node *previous, t_node *next);
 int check_redirect_pipe_error(t_node *current, t_node *previous);
 int check_redirection_errors(t_node *head);
@@ -214,6 +213,7 @@ char *ft_strchr(const char *s, int c);
 int ft_strcmp(const char *str1, const char *str2);
 char *ft_strdup(const char *source);
 char *ft_strtrim(char *s1, char *set);
+char *ft_strtok_c(char *str, char delim) ;
 
 // utils_3
 int checker_quotes(char *line);
@@ -239,7 +239,7 @@ t_env *envp_to_linked_list(char **envp);
 
 //after 27-nov
 t_cmd_full *create_cmd_full();
-void parse_cmd_list(t_cmd_full **cmd_full, t_node *head , t_env *l_env, t_command *cmd_arr, char *input);
+void parse_cmd_list(t_cmd_full **cmd_full, t_node *head , t_env *l_env, char *input);
 int count_cmd(t_node *head);
 //void parse_cmd_arr(t_cmd_full *cmd_full, t_command *cmd_arr, char *input);
 void parse_cmd_arr(t_cmd_full *cmd_full, char *input);
@@ -309,6 +309,7 @@ char **env_toarray(t_env *env);
 unsigned char _ft_strcmp(char *str1, char *str2);
 // to be used with append_env_node!
 
+int exit_status(int value);
 void *fail(void *ret, int smth);
 void restore_fds();
 void fail_exit();
@@ -324,5 +325,6 @@ int change_dir(char **args, t_env *env, int *exit_stat);
 
 int main_loop(t_node *head, char **envpp);
 
+char	*ft_itoa(int n);
 
 #endif

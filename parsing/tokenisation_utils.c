@@ -1,13 +1,16 @@
 #include "../minishell.h"
 
-int	ft_strlen(const char *s)
+size_t	ft_strlen(const char *s)
 {
-	int	i;
+	int	a;
 
-	i = 0;
-	while (s[i])
-		i++;
-	return (i);
+	a = 0;
+	while (*s != '\x00')
+	{
+		s++;
+		a++;
+	}
+	return (a);
 }
 
 
