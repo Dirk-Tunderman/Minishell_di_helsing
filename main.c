@@ -56,13 +56,7 @@ void    check_here_doc_before_exp(t_node *head)
     }
 }
 
-
-
 //--------------------------------------------------------------------------------------//
-
-
-
-
 
 int main_loop(t_node *head, char **envp)
 {

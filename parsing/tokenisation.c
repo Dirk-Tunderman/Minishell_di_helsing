@@ -6,7 +6,6 @@ void lexer(char *input, t_node **head, t_env *l_env)
 	t_token prev_type = OPERATOR;  // Initialize as OPERATOR
 	while (input[i])
 	{
-
 		if (ft_isspace(input[i])) // skip spaces
 			i++;
 		else 
@@ -61,8 +60,9 @@ int	spaceflag_env(char *input, int *i)
 {
 	int temp = *i;
 	int space_flag = 0;
+
 	temp++;
-	while (input[temp] && input[temp] != '\'' && input[temp != '\"'] && input[temp] != '$')
+	while (input[temp] && input[temp] != '\'' && input[temp] != '\"' && input[temp] != '$')
 		temp++;
 	if (input[temp + 1] == ' ')
 		space_flag = 1;
@@ -134,6 +134,7 @@ char *get_before_env_varr(char *input, int temp)
 void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env *l_env)
 {
 	char *data;
+	char	**quoted;
 	t_token type;
 	int space_flag = 0;
 	char *before_env;
@@ -143,16 +144,14 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env
 	if (input[*i] == '$') //for env without quotes
 	{	
 		temp = *i;
-		before_env = get_before_env_varr(input, temp); // your parsing needs to work like this eamrati
-		space_flag = spaceflag_env(input, i);
+		before_env = get_env_var_ex(input, *i);
 		data = get_env_var(input, i, l_env); // Get environment variable
+		space_flag = ft_isspace(input[*i]);
 		type = ARG;
 	}
 	else if (is_operator(input[*i])) // Check for operator
 	{
 		printf("go in operator\n");
-		space_flag = spaceflag_op(input, i);
-		// Check if next character is also '>', indicating a '>>' operator
 		if (input[*i] == '>' && input[*i + 1] == '>')
 		{
 			data = ft_strdup(">>");
@@ -165,28 +164,33 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env
 		}
 		else
 			data = char_to_str(input[*i]); // Convert char to string
-		type = OPERATOR;
 		(*i)++; // Increment i to skip the operator character
+		space_flag = ft_isspace(input[*i]);
+		type = OPERATOR;
 	}
 	else if (input[*i] == '\"') // Check for double quotes
 	{
-		printf("go in double quote\n");
-		space_flag = spaceflag_d_quote(input, i);
-		data = get_quoted_word(input, i, l_env, '\"'); // Get quoted word
+		quoted = get_quoted_word(input, i, l_env, '\"'); // Get quoted word
+		data = quoted[1];
+		before_env = quoted[0];
 		(*i)++; // Increment i to skip the closing double quote (if present
+		space_flag = ft_isspace(input[*i]);
 		type = QUOTE_ARG;
-		
 	}
 	else if (input[*i] == '\'') // Check for single quotes
 	{
-		space_flag = space_flag_s_quote(input, i);
-		data = get_quoted_word(input, i, l_env, '\''); // Get quoted word
+		quoted = get_quoted_word(input, i, l_env, '\''); // Get quoted word
+		data = quoted[1];
+		before_env = quoted[0];
+		(*i)++;;
+		space_flag = ft_isspace(input[*i]);
 		type = QUOTE_ARG;
 	}
 	else
 	{
 		space_flag = spaceflag_word(input, i);
 		data = get_word(input, i); // Get word
+		space_flag = ft_isspace(input[*i]);
 		type = ARG;
 	}
 	append_node(head, data, type, space_flag, before_env); // Append node to list
@@ -211,32 +215,34 @@ char *get_before_env_var(char *input, int end, int start)
 }
 
 
-char *get_quoted_word(char *input, int *i, t_env *l_env, char quote_type)
+char **get_quoted_word(char *input, int *i, t_env *l_env, char quote_type)
 {
-    char *result;
+    char **result;
 	char *env_variable;
 	char *before_env;
-	int flag = 0;
-	int before_env_end = 0;
 
 	(*i)++;
 	int start = *i;
-	result = "";
-    while(input[*i] && input[*i] != quote_type)
+	result = ft_calloc(sizeof(char *), 2);
+	result[0] = ft_calloc(sizeof(char), 1);
+	result[1] = ft_calloc(sizeof(char), 1);
+	while(input[*i] && input[*i] != quote_type)
     {
 		if (quote_type == '\"' && input[*i] == '$')// issue
 		{
-			before_env_end = *i;
-			flag  = 1;
+			before_env = get_env_var_ex(input, *i);
         	env_variable = get_env_var(input, i, l_env);
-			before_env = get_before_env_var(input, before_env_end, start);
-			result = ft_strjoin(result, ft_strjoin(before_env, env_variable));
+			result[0] = ft_strjoin(result[0], before_env);
+			result[1] = ft_strjoin(result[1], env_variable);
 			start = *i;
-			continue;
 		}
-        (*i)++;
+		else
+		{
+			result[0] = ft_strjoin(result[0], ft_strndup(&input[*i], 1)); // LEAKS
+			result[1] = ft_strjoin(result[1], ft_strndup(&input[*i], 1)); // LEAKs
+			(*i)++;
+		}
     }
-	result = ft_strjoin(result, get_before_env_var(input, *i, start));
     return (result);
 }
 
@@ -276,53 +282,10 @@ char *get_word(char *input, int *i)
 	char *word;
 
 	start = *i;
-	while (input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i + 1]) && input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
-	{
-		if (input[*i] == '\"')
-		{
-			(*i)++;
-			while (input[*i] != '\"')
-				(*i)++;
-		}
-		else if (input[*i] == '\'')
-		{
-			(*i)++;
-			while (input[*i] != '\'')
-				(*i)++;
-		}
+	while (input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
 		(*i)++;
-	} // to be rechecked for concurrent quotes with words
-	if (input[*i] == '\"')
-	{
-		(*i)++;
-		while (input[*i] != '\"')
-			(*i)++;
-	}
-	else if (input[*i] == '\'')
-	{
-		(*i)++;
-		while (input[*i] != '\'')
-			(*i)++;
-	}
-	if (input[*i] != '$')
-		(*i)++;
+// to be rechecked for concurrent quotes with words
 
-	// Check here with Medhi if he wants the "" included in the word or not
-	// if (input[*i] == '\"')
-	// {
-	// 	(*i)++;
-	// 	while (input[*i] != '\"')
-	// 			(*i)++;
-	// }
-	// else if (input[*i] == '\'')
-	// {
-	// 	(*i)++;
-	// 	while (input[*i] != '\'')
-	// 		(*i)++;
-	// }
-	// if (input[*i] == '\'' || input[*i] == '\"')
-	// 	(*i)++;
-	
 	word = ft_strndup(&input[start], *i - start);
 	return word;
 }
@@ -417,10 +380,7 @@ void append_node(t_node **head, char *data, t_token type, int space_flag, char *
 	printf("new_node->before_env: %s\n", new_node->before_env);
 	new_node->type = type;
 	new_node->path = NULL;
-	if (space_flag == 1)
-		new_node->space_after = 1;
-	else
-		new_node->space_after = 0;
+	new_node->space_after = space_flag;
 
 	new_node->next = NULL;
 	if (*head == NULL)
@@ -434,6 +394,25 @@ void append_node(t_node **head, char *data, t_token type, int space_flag, char *
 	}
 }
 
+char *get_env_var_ex(char *input, int i)
+{   
+	int start;
+	char *var_name;
+	int dollar;
+
+	dollar = 0;
+	start = i;
+	while (input[i] == '$')
+	{
+		i++;
+		dollar++;
+	}
+	while(input[i] && !ft_isspace(input[i]) && !is_operator(input[i]) && input[i] != '\"' && input[i] != '\'' && input[i] != '$') // just tell me if there are spaces between dollars and it's fine!
+		i++;
+	var_name = ft_strndup(&input[start], i - start);
+	return (var_name);
+}
+
 char *get_env_var(char *input, int *i, t_env *l_env)
 {   
 	int non_delim_index;
@@ -444,18 +423,16 @@ char *get_env_var(char *input, int *i, t_env *l_env)
 	char *var_name;
 	char *var_value;
 	char *result;
-
-	dollar = 0;
 	(*i)++;
+	dollar = 0;
 	while (input[*i] == '$')
 	{
 		(*i)++;
 		dollar++;
 	}
 //------------
-
-	// start of enviornment variable
 	start = *i;
+	// start of enviornment variable
 	printf("input[*i]: %c\n", input[*i]);
 
 	if (input[*i] == '?')
@@ -475,10 +452,10 @@ char *get_env_var(char *input, int *i, t_env *l_env)
 		printf("input[*i]: %c\n", input[*i]);
 		non_delim_index = *i;
 		while(input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"' && input[*i] != '$') // takes care of everything after $ until space or operator or "
-		(*i)++;
-
+			(*i)++;
 		end = *i; 
-
+		if (end == start - dollar)
+			return (ft_strdup(&input[start - dollar - 1]));
 		delim = ft_substr(&input[non_delim_index], 0, end - non_delim_index);
 		var_name = ft_strndup(&input[start], non_delim_index - start);
 		var_value = find_env_var(var_name, l_env);
@@ -489,23 +466,14 @@ char *get_env_var(char *input, int *i, t_env *l_env)
 	{
 		free(var_name);
 		printf("var_value == NULL\n");
-		return ("");
+		return (ft_strjoin(ft_strndup(&input[start - dollar], dollar), delim));
 	}
-	if (var_value && dollar % 2 == 0)
-	{
-		result = malloc(ft_strlen(var_value) + 1 + ft_strlen(delim));
-		ft_strcpy(result, var_value);
-		ft_strcat(result, delim);
-		printf("indicator 0 %s\n", result);
-		return (result);
-	}
-	if (var_value && dollar % 2 == 1)
-	{
-		printf("indicator 1 %s\n", var_name);
-		return (var_name);
-	}
-	else
-		return ("");
+	result = ft_calloc(sizeof(char), ft_strlen(var_value) + 1 + ft_strlen(delim) + dollar);
+	ft_strcat(result, ft_strndup(&input[start - dollar], dollar));
+	ft_strcat(result, var_value);
+	ft_strcat(result, delim);
+	printf("indicator 0 %s\n", result);
+	return (result);
 }
 
 char *find_env_var(const char *var_name, t_env *l_env)
@@ -544,36 +512,4 @@ void check_and_set_redirect(t_node *head) // check here also what the type is, i
 			current->type = HERDOC;
 		current = current->next;
 	}
-}
-
-char *expand_env_in_word(const char *word, t_env *l_env, bool is_single_quoted) 
-{
-	char *copy;
-	char *token;
-	char *expanded_word;
-	int i;
-	char *expanded_token;
-
-	expanded_word = NULL;
-	copy = ft_strdup(word);
-	token = ft_strtok(copy, "$");
-	while (token) 
-	{
-		i = 0;
-		if (!is_single_quoted)
-			expanded_token = get_env_var(token, &i, l_env);
-		else
-			expanded_token = ft_strdup(token);
-		if (expanded_word) 
-		{
-			expanded_word = realloc(expanded_word, ft_strlen(expanded_word) + ft_strlen(expanded_token) + 1);
-			ft_strcat(expanded_word, expanded_token);
-		} 
-		else
-			expanded_word = ft_strdup(expanded_token);
-		free(expanded_token);
-		token = ft_strtok(NULL, "$");
-	}
-	free(copy);
-	return expanded_word;
 }

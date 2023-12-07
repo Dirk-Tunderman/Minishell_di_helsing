@@ -63,7 +63,7 @@ void resolve_path(t_node *head, t_env *l_env)
         if (current->type == ARG || current->type == QUOTE_ARG)
         {
             executable_path = find_executable(current->data, l_env);
-            if (executable_path != NULL)
+            if (executable_path != NULL && current->data[0])
             {
                 current->type = CMD;
                 current->path = executable_path;
@@ -72,20 +72,3 @@ void resolve_path(t_node *head, t_env *l_env)
         current = current->next;
     }
 }
-// {
-//     t_node *current = head;
-
-//     while (current != NULL) 
-//     {
-//         if (current->type == CMD && is_command(current->data)) 
-//         {
-//             char *executable_path = find_executable(current->data, envp);
-//             if (executable_path != NULL) 
-//             {
-//                 current->path = executable_path;
-//             }
-//         }
-//         current = current->next;
-//     }
-// }
-

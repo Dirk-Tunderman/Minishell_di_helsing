@@ -218,7 +218,6 @@ char *ft_strcat(char *dest, const char *src)
 		dest++;
 		src++;
 	}
-
 	*dest = '\0';
 	return original_dest;
 }

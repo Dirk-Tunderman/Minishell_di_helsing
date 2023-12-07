@@ -128,7 +128,7 @@ int	spaceflag_op(char *input, int *i);
 // tokenisation
 void lexer(char *input, t_node **head, t_env *l_env);
 void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env *l_env);
-char *get_quoted_word(char *input, int *i, t_env *l_env, char quote_type);
+char **get_quoted_word(char *input, int *i, t_env *l_env, char quote_type);
 char *remove_quotes(char *input);
 char *get_word(char *input, int *i);
 char *get_before_env_varr(char *input, int temp);
@@ -148,6 +148,7 @@ int	add_token_list(t_node **head, char *input);
 int is_shell_command(char *str);
 void append_node(t_node **head, char *data, t_token type, int space_flag, char *before_env);
 char *get_env_var(char *input, int *i, t_env *l_env);
+char *get_env_var_ex(char *input, int i);
 void check_and_set_redirect(t_node *head);
 char *expand_env_in_word(const char *word, t_env *l_env, bool is_single_quoted);
 
