@@ -1,0 +1,11 @@
+'asdasd'asdads'asdasd'
+
+
+// always check if current is not an operator and if next is a quoted arg and if it is, if there is no space. Join if true
+// the only reason is that quoted args are not treated as normal arguments, since they need to be stripped of the quotes and have their special expansions inside
+
+redirect standard error of children to dev null
+
+ft_free
+
+leak detector continuous

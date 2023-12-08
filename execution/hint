@@ -1,0 +1,6 @@
+t_comparsed *parsed = parsed_single_cmd(head, cmd_full->cmd_count, cmd_full->exit_status, envp);
+execute_list(parsed, l_env, envp, head);
+exit_status = parsed->exit_status;
+
+MAKEFILE : SRC_EXEC = apply_redir.c exec.c fail.c final_parse.c ft_lstadd_back.c ft_lstlast.c ft_lstnew.c get_next_line.c get_next_line_utils.c execution/built_ins/builtins.c  execution/built_ins/call.c
+VPATH += execution
