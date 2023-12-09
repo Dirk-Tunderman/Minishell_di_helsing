@@ -9,3 +9,13 @@ redirect standard error of children to dev null
 ft_free
 
 leak detector continuous
+
+still need to fix heredoc CTRL C
+
+exit stat after ctrl C
+
+remove all fail(0, 0)
+
+check if fail_exit() causes leaks
+
+test interrupting syscalls with SIGSTOP

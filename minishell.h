@@ -14,6 +14,7 @@
 #include <signal.h>
 
 #define MAX_ARGS 1024
+#define SYSCALLFAIL 666
 
 extern int g_signal_rec;
 
@@ -292,10 +293,10 @@ void *alloc_wrapper(void *allocation, int mode, void *additional);
 
 void	*ft_calloc(size_t count, size_t size);
 void		call_respective(char **cmd, int *exit_stat, t_env *env);
-void    execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node *head);
+int execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node *head);
 int     check_buildin(char *cmd);
-void set_fds(t_comparsed *cmds, int ***fds);
-void set_redirects(char **redirects, int *fds);
+int set_fds(t_comparsed *cmds, int ***fds);
+int set_redirects(char **redirects, int *fds);
 t_alloc	*ft_lstnew(void *content);
 void	ft_lstadd_back(t_alloc **lst, t_alloc *new);
 t_alloc	*ft_lstlast(t_alloc *lst);
@@ -323,7 +324,7 @@ int export(char **args, t_env *env, int *exit_stat);
 int print_wd(char **args, t_env *env, int *exit_stat);
 int echo(char **args, t_env *env, int *exit_stat);
 int change_dir(char **args, t_env *env, int *exit_stat);
-
+void print_env(char **args, t_env *head, int *exit_stat); 
 int main_loop(t_node *head, char **envpp);
 
 char	*ft_itoa(int n);

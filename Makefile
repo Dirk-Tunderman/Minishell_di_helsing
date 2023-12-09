@@ -8,8 +8,9 @@ SRC := main.c tokenisation.c error_handeling.c  \
 		error_nodes.c utils.c utils_2.c utils_3.c ft_itoa.c resolute.c init_cmd.c\
 		env_in_list.c signals.c
 
-SANITIZE := -fsanitize=address -fsanitize=undefined 
-LDFLAGS += -lreadline -L$(shell brew --prefix)/opt/readline/lib/ $(SANITIZE) -dead_strip
+SANITIZE := -fsanitize=address -fsanitize=undefined
+SANITIZE := 
+LDFLAGS += -lreadline -L$(shell brew --prefix)/opt/readline/lib/ $(SANITIZE)
 CPPFLAGS += -I$(shell brew --prefix)/opt/readline/include/ -I.
 CFLAGS += -Wall -Wextra -Werror $(SANITIZE) -g
 

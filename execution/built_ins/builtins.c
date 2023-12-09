@@ -6,11 +6,27 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 21:54:31 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/08 21:36:53 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/09 15:08:47 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+void update_wd(char *wd, t_env *env)
+{
+	char *sv;
+
+	if(!wd)
+		return ;
+	alloc_wrap(wd);
+	sv = ft_strjoin("PWD=", wd); // leak
+	while (env && _ft_strcmp(env->key, "PWD")) // env->key should never equal null otherwise it's a crash
+			env = env->next;
+	if (!env)
+		append_env_node(&env, sv);
+	else
+		env->value = wd;
+}
 
 void update_oldwd(char *old, t_env *env)
 {
@@ -18,10 +34,7 @@ void update_oldwd(char *old, t_env *env)
 
 	if(!old)
 		return ;
-	alloc_wrap(old);
 	sv = ft_strjoin("OLDPWD=", old); // leak
-	if (!sv)
-		fail_exit();
 	while (env && _ft_strcmp(env->key, "OLDPWD")) // env->key should never equal null otherwise it's a crash
 			env = env->next;
 	if (!env)
@@ -32,6 +45,11 @@ void update_oldwd(char *old, t_env *env)
 
 int change_dir(char **args, t_env *env, int *exit_stat)
 {
+	char *old;
+	
+	old = getcwd(NULL, 0);
+	if (old)
+		alloc_wrap(old);
 	if (!args[0]) // always the case that this might be null, since no data is copied even though the allocation is done (in the parsing)
 	{
 		while (env && _ft_strcmp(env->key, "HOME")) // env->key should never equal null otherwise it's a crash
@@ -43,7 +61,8 @@ int change_dir(char **args, t_env *env, int *exit_stat)
 			*exit_stat = 1;
 			return (printf("Failure to change directory!\n"), 1);
 		}
-		update_oldwd(getcwd(NULL, 0), env);
+		update_wd(getcwd(NULL, 0), env);
+		update_oldwd(old, env);
 		return (0);
 	}
 	if (chdir(args[0]) == -1)
@@ -51,7 +70,8 @@ int change_dir(char **args, t_env *env, int *exit_stat)
 		*exit_stat = 1;
 		return (printf("Failure to change directory!\n"), 1); // can't handle everything, need errno which is forbidden
 	}
-	update_oldwd(getcwd(NULL, 0), env);
+	update_wd(getcwd(NULL, 0), env);
+	update_oldwd(old, env);
 	*exit_stat = 0;
 	return (0);
 }
@@ -106,8 +126,8 @@ int print_wd(char **args, t_env *env, int *exit_stat)
 	wd = getcwd(NULL, 0);
 	if (!wd)
 	{
-		*exit_stat = 1;
-		return (printf("Failure to get directory!\n"), 1);
+		*exit_stat = 0;
+		return (printf(".\n"), 0);
 	}
 	if (printf("%s\n", wd) < 0)
 	{
@@ -157,6 +177,23 @@ int chck_node(t_env *env, char *arg)
 	return (1);//(free(key), 1);
 }
 
+int is_there(t_env *env, char *key)
+{
+	while (env && _ft_strcmp(env->key, key))
+		env = env->next;
+	if (env)
+		return (1);
+	return (0);
+}
+
+void set_exp(t_env *env, char *key)
+{
+	while (env && _ft_strcmp(env->key, key))
+		env = env->next;
+	if (env)
+		env->only_export = 1;
+}
+
 int export(char **args, t_env *env, int *exit_stat)
 {
 	int x;
@@ -189,8 +226,9 @@ int export(char **args, t_env *env, int *exit_stat)
 				return (printf("Invalid identifier!\n"), 1);
 			else if (opti == 2)
 			{
-				append_env_node(&env, args[c++]);
-				env->only_export = 1;
+				if(!is_there(env, args[c]))
+					append_env_node(&env, args[c]);
+				set_exp(env, args[c++]);
 			}
 		}
 	*exit_stat = 0;
@@ -224,4 +262,21 @@ int unset(char **args, t_env *env, int *exit_stat)
 	}
 	*exit_stat = 0;
 	return (0);
+}
+
+void print_env(char **args, t_env *head, int *exit_stat) 
+{
+	(void) args;
+    while (head) 
+	{
+		if (!head->only_export)
+		{
+			if (head->value)
+        		printf("%s=%s\n", head->key, head->value);
+			else
+				printf("%s=\n", head->key);
+		}
+		head = head->next;
+    }
+	*exit_stat = 0;
 }

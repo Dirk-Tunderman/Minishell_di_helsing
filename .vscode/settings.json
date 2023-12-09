@@ -15,6 +15,7 @@
 		"new": "c",
 		"stdbool.h": "c",
 		"errno.h": "c",
-		"stdio.h": "c"
+		"stdio.h": "c",
+		"iterator": "c"
 	}
 }

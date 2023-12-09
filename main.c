@@ -44,13 +44,6 @@ void print_envp(char **envp) {
     }
 }
 
-void print_env_list(t_env *head) {
-    t_env *current = head;
-    while (current) {
-        printf("%s, Value: %s\n", current->key, current->value ? current->value : "NULL");
-        current = current->next;
-    }
-}
 int cnt_env(t_env *current) {
     int x = 0;
     while (current) {
@@ -133,11 +126,11 @@ int main_loop(t_node *head, char **envp)
 	while (1)
 	{
         g_signal_rec = 0;
-        if(!input)
-            printf("\n");
+       // if(!input)
+       //     printf("\n");
         sig_init();
         input = readline("minishell$: ");
-        sig_reset();
+        signal(SIGINT, SIG_IGN);
         if (!input)
             fail_exit();
         alloc_wrap(input);
@@ -157,8 +150,10 @@ int main_loop(t_node *head, char **envp)
 		    printf("\n");
 		    printf("----------------------------------------------------------------------------\n");
             t_comparsed *parsed = parsed_single_cmd(head, count_cmd(head), exit_status(256), envp);
-            execute_list(parsed, l_env, envp, head);
+            if (execute_list(parsed, l_env, envp, head)== SYSCALLFAIL)
+                parsed->exit_status = 1;
             exit_status(parsed->exit_status);
+            restore_fds();
             fail(0, 0);
             l_env = alloc_wrapper(0, 2, 0);
             alloc_wrap_env(l_env);
@@ -173,11 +168,15 @@ void ex()
 {
     system("leaks minishell");
 }
+
 int     main(int argc, char **argv, char **envp)
 {
 	(void)argc;
 	(void)argv;
+
+    atexit(ex);
     rl_catch_signals = 0;
+    restore_fds();
 	return (main_loop(0, envp));
 }
 

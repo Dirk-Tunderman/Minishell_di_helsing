@@ -352,7 +352,7 @@ char *get_env_var(char *input, int *i, t_env *l_env)
 			(*i)++;
 		end = *i; 
 		if (end == start - dollar)
-			return (ft_strndup(&input[start - dollar], dollar));
+			return (ft_strndup(&input[start - dollar - 1], dollar + 1));
 		delim = ft_substr(&input[non_delim_index], 0, end - non_delim_index);
 		var_name = ft_strndup(&input[start], non_delim_index - start);
 		var_value = find_env_var(var_name, l_env);

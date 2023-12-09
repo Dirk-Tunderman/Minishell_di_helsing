@@ -27,13 +27,3 @@ void sig_init(void)
     }
     signal(SIGQUIT, SIG_IGN);
 }
-
-void f()
-{
-    return ;
-}
-
-void sig_reset()
-{
-    signal(SIGINT, f);
-}

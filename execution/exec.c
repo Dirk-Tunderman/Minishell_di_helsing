@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/30 13:48:06 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/09 00:33:11 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/09 16:24:51 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,59 +95,60 @@ then the child will block forever in the call to read waiting more more data.
 (The read call will block if there's any open file descriptor associated with the write-end of the pipe.)
 */
 
-void set_pipe(int *_pipe, int sv_next)
+int set_pipe(int *_pipe, int sv_next)
 {
 // if sv_next is set, it is meat for you, use it and set it again if there is someone following you
 	if (sv_next != -1)
 		close(_pipe[1]);
 	if (pipe(_pipe))
-	{
-		fail(0, 0); //<<--- reset this
-		return ;
-	}
+		return (SYSCALLFAIL);
+	return (0);
 }
 
 // pipes, just take the endpoint you need and forget the other
 // redirectors, you have to dup the respective endpoint
 
-void* overridefds(t_comparsed *cmds, int x, int *_pipe, int sv_next)
+int overridefds(t_comparsed *cmds, int x, int *_pipe, int sv_next)
 {
+// STDOUT
 	if (cmds->fds[x][3] != -1)
 	{
 		if(dup2(cmds->fds[x][3], STDOUT_FILENO) == -1)
-			return fail(0, 0);// reset instead
+			return (SYSCALLFAIL);// reset instead
 	}
 	else if (cmds->fds[x][4] != -1)
 	{
 		if (dup2(cmds->fds[x][4], STDOUT_FILENO) == -1)
-			return fail(0, 0);
+			return (SYSCALLFAIL);
 	}
 	else if (x < cmds->cmd_count - 1)
 	{
 		if (dup2(_pipe[1], STDOUT_FILENO) == -1)
-			return fail(0, 0);
+			return (SYSCALLFAIL);
 	}
+// STDIN
 	if (cmds->fds[x][0] != -1)
 	{
-			//	printf("lol1");
-
 		if(dup2(cmds->fds[x][0], STDIN_FILENO) == -1)
-			return fail(0, 0);
+			return (SYSCALLFAIL);
 	}
 	else if (cmds->fds[x][1] != -1)
 	{
-			//	printf("lol2");
 		if(dup2(cmds->fds[x][1], STDIN_FILENO) == -1)
-			return fail(0, 0);
+			return (SYSCALLFAIL);
 	}
 	else if (x > 0)
 	{
-		//printf("lol3");
 		if (dup2(sv_next, STDIN_FILENO) == -1)
-			return fail(0, 0);
-		//printf("passed");
+			return (SYSCALLFAIL);
 	}
-	return (NULL);
+	if (cmds->fds[x][3] == -1 && cmds->real_redirects[x][2])
+		close(STDOUT_FILENO);
+	if (cmds->fds[x][4] == -1 && cmds->real_redirects[x][3])
+		close(STDOUT_FILENO);
+	if (cmds->fds[x][0] == -1 && cmds->real_redirects[x][0])
+		close(STDIN_FILENO);
+	return (0);
 }
 
 void restore_fds()
@@ -187,9 +188,12 @@ void _void()
 	return ;
 }
 
-void execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node *head)
+int execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node *head)
 {
 	int x;
+	int pid_wait;
+	int pid_last;
+	char **last_proc;
 	int chld_pid;
 	int sv_next;
 	int _pipe[2];
@@ -199,40 +203,51 @@ void execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node *h
 	// mind signals ! DEC 4
 	sv_next = -1;
 	x = 0;
-	set_fds(cmds, &cmds->fds);
+	last_proc = 0;
+	pid_last = -1;
+	if (set_fds(cmds, &cmds->fds) == SYSCALLFAIL)
+		return (signal(SIGINT, SIG_IGN), restore_fds(), SYSCALLFAIL);
+	signal(SIGINT, SIG_IGN);
+	restore_fds();
+	while (x < cmds->cmd_count)
+	{
+		if (cmds->exec_ready[x])
+			last_proc = cmds->exec_ready[x];
+		x++;
+	}
+	x = 0;
 	while (cmds && x < cmds->cmd_count) // ->exec_ready[x]) // don't use command count!!!, a command can be empty!!
 	{
 		set_redirects(cmds->real_redirects[x], cmds->fds[x]);
-		apply_garbage_redir(cmds->garbage_redirects_arr[x]);
+		apply_garbage_redir(cmds->garbage_redirects_arr[x]); // who cares syscallfail
 		 // don't ever dereference exec_ready[x] before checking if it isn't null
 		if (cmds->exec_ready[x])
 		{
 			//printf("running cmd %s\n",cmds->exec_ready[x][0]);
-			set_pipe(_pipe, sv_next);
-			overridefds(cmds, x, _pipe, sv_next);
+			if(set_pipe(_pipe, sv_next) == SYSCALLFAIL)
+				return (SYSCALLFAIL);
+			if (overridefds(cmds, x, _pipe, sv_next) == SYSCALLFAIL)
+				return (SYSCALLFAIL);
+			// setup of program ends here
 			if (is_builtin(cmds->exec_ready[x][0]) && !det_subshell(cmds))
 				call_respective(cmds->exec_ready[x], &cmds->exit_status, env);
 			else
 			{
 				cmds->uptodate_env = env_toarray(env);
-				print_env_list(env);
-				int l = 0;
-				printf("OK\n");
-				while (cmds->uptodate_env[l])
-				{
-					printf("%s\n",cmds->uptodate_env[l]);
-					l++;
-				}
 				chld_pid = fork();
 				if (chld_pid == -1)
-					return (fail(0, 0), _void());	//<<--- reset this//reset("Issue forking child!"); //
+					return (SYSCALLFAIL);	//<<--- reset this//reset("Issue forking child!"); //
+				if (cmds->exec_ready[x] == last_proc)
+					pid_last = chld_pid;
 				if (!chld_pid)
 				{
+					close(STDERR_FILENO);
 					signal(SIGINT, SIG_DFL);
 					signal(SIGQUIT, SIG_DFL);
 					if (is_builtin(cmds->exec_ready[x][0]))
 					{
 						call_respective(cmds->exec_ready[x], &cmds->exit_status, env);
+						exit_status(cmds->exit_status);
 						fail_exit();
 					}
 					else if (execve(fetch_pathll(cmds->exec_ready[x][0], head), cmds->exec_ready[x], cmds->uptodate_env) == -1)
@@ -244,25 +259,30 @@ void execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node *h
 							perror(0);
 							fail_exit();
 						}
-						fail_exit(); //set the valid return value here! Dec 3
+						perror(0);
+						fail_exit();
 					}
-				}
+				}					
 			}
+			//printf("RAN %s %d\n", cmds->exec_ready[x][0], cmds->exit_status);
 		}
 		restore_fds();
 		sv_next = _pipe[0]; // this can happen to be garbage
 		x++;
-	}int c;
-	while ((c = waitpid(-1, &cmds->exit_status, 0)) != -1)
+	}
+	pid_wait = waitpid(-1, &cmds->exit_status, 0);
+	while (pid_wait > 0)
 	{
-		if(WIFEXITED(cmds->exit_status))
+		if(last_proc && pid_last == pid_wait && WIFEXITED(cmds->exit_status))
 			cmds->exit_status = WEXITSTATUS(cmds->exit_status);
-		else if (WIFSIGNALED(cmds->exit_status))
+		else if (last_proc && pid_last == pid_wait && WIFSIGNALED(cmds->exit_status))
 			cmds->exit_status = 128 + WTERMSIG(cmds->exit_status);
 		// this should be at the end as well! because the signal handler might screw things up!
-		if (cmds->exit_status > 255)
+		if (last_proc && pid_last == pid_wait && cmds->exit_status > 255)
 			cmds->exit_status = 255;
+		pid_wait = waitpid(-1, &cmds->exit_status, 0);
 	}
+	return (0);
 }
 
 
