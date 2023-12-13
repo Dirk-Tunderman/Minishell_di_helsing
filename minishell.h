@@ -15,6 +15,10 @@
 
 #define MAX_ARGS 1024
 #define SYSCALLFAIL 666
+#define WHOCARES 1337
+#define YIELD 256
+#define ABORTCURRENTCMD 555
+#define ACCESS_DENIED 126
 
 extern int g_signal_rec;
 
@@ -86,6 +90,7 @@ typedef struct s_node {
 	t_token type;
 	char *before_expansion;
 	char *before_env;
+	char	*exp_nosplit;
 	int redirect;
 	int space_after;
 	int flag;
@@ -129,7 +134,7 @@ int	spaceflag_op(char *input, int *i);
 // tokenisation
 void lexer(char *input, t_node **head, t_env *l_env);
 void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env *l_env);
-char **get_quoted_word(char *input, int *i, t_env *l_env, char quote_type);
+char **get_quoted_word(char *input, int *i, t_env *l_env, char quote_type, int different);
 char *remove_quotes(char *input);
 char *get_word(char *input, int *i);
 char *get_before_env_varr(char *input, int temp);
@@ -221,7 +226,7 @@ int checker_quotes(char *line);
 void display_list(t_node *head);
 void free_node(t_node *node);
 void free_list(t_node *head);
-char	**ft_split(char const *s, char c);
+char	**ft_split(char const *s);
 int is_command(char *data);
 
 //cmd
@@ -278,12 +283,15 @@ typedef struct s_comparsed
 {
     char ***exec_ready;
     char ***real_redirects; // [STDIN, HERDOC, STDOUT, APPEND] 
-    char ****garbage_redirects_arr; // with eff // [[OVERRIDE, OVERRIDE, 0], [NOP, NOP, 0]]
+    char ****garbage_redirects_arr; // with eff // [[OVERRIDE, OVERRIDE, 0], [NOP, NOP, 0] [HEREDOC, HEREDOC, 0]]
     int     **fds; // [STDIN_FD <, HERDOC_RD, HERDOC_WR, STDOUT_FD >, APPEND_FD >>]
     int     cmd_count;
+	t_node	*all_thestuff;
+	t_env	*environment;
     char    **uptodate_env;
     int     exit_status;
-  //  t_cd    *cd;
+	char	**heredocs;
+	char 	**fake_heredocs;
 } t_comparsed;
 
 void *alloc_wrapper(void *allocation, int mode, void *additional);
@@ -292,8 +300,8 @@ void *alloc_wrapper(void *allocation, int mode, void *additional);
 #define OUT_OF_MEMORY 255
 
 void	*ft_calloc(size_t count, size_t size);
-void		call_respective(char **cmd, int *exit_stat, t_env *env);
-int execute_list(t_comparsed *cmds, t_env *env, char **original_envp, t_node *head);
+void call_respective(char **cmd, int *exit_stat, t_env **env);
+int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *head);
 int     check_buildin(char *cmd);
 int set_fds(t_comparsed *cmds, int ***fds);
 int set_redirects(char **redirects, int *fds);
@@ -308,6 +316,8 @@ void	ft_lstadd_back_fd(t_opens **lst, t_opens *new);
 t_comparsed *parsed_single_cmd(t_node *linked_list, int cmd_count, int exit_stat, char **envp);
 char **env_toarray(t_env *env);
 unsigned char _ft_strcmp(char *str1, char *str2);
+char *skip_expand_split(t_node **linked_list);
+int is_in(char *cmd, char c);
 // to be used with append_env_node!
 
 int exit_status(int value);
@@ -319,17 +329,22 @@ void *alloc_wrap(void *arg);
 t_env *duplicate_env(t_env *env);
 
 // builtins
-int unset(char **args, t_env *env, int *exit_stat);
+int unset(char **args, t_env **env, int *exit_stat);
 int export(char **args, t_env *env, int *exit_stat);
 int print_wd(char **args, t_env *env, int *exit_stat);
 int echo(char **args, t_env *env, int *exit_stat);
 int change_dir(char **args, t_env *env, int *exit_stat);
 void print_env(char **args, t_env *head, int *exit_stat); 
+void    c_exit(char **args, int *exit_status);
 int main_loop(t_node *head, char **envpp);
+int exit_status(int value);
 
+
+int	ft_atoi(const char *str);
 char	*ft_itoa(int n);
 void print_envp(char **envp);
 void print_env_list(t_env *head);
 void	ft_bzero(void *s, size_t n);
+int	is_int0(char *arg);
 
 #endif

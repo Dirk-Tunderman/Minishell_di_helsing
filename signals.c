@@ -11,6 +11,7 @@ void sig_handler(int signo)
     rl_on_new_line();
     printf("\n");
     rl_redisplay();
+    exit_status(1);
     g_signal_rec = 1;
 }
 

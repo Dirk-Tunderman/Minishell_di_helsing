@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 21:54:31 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/09 15:08:47 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/13 21:54:33 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,10 +56,10 @@ int change_dir(char **args, t_env *env, int *exit_stat)
 			env = env->next;		
 		if (!env || !env->value)
 			return (printf("Failure to change directory!\n"), 1);
-		if (chdir(env->value) == -1)
+		else if (chdir(env->value) == -1) 
 		{
 			*exit_stat = 1;
-			return (printf("Failure to change directory!\n"), 1);
+			return (printf("Failure to change directory!\n"), 1); 
 		}
 		update_wd(getcwd(NULL, 0), env);
 		update_oldwd(old, env);
@@ -67,7 +67,8 @@ int change_dir(char **args, t_env *env, int *exit_stat)
 	}
 	if (chdir(args[0]) == -1)
 	{
-		*exit_stat = 1;
+		if (args[0][0]) // EMPTY PATH FAILS, HOWEVER IT SHOULDN'T UPDATE EXIT STAT IF STRING IS NONSIGNIFICANT [DONE]
+			*exit_stat = 1;
 		return (printf("Failure to change directory!\n"), 1); // can't handle everything, need errno which is forbidden
 	}
 	update_wd(getcwd(NULL, 0), env);
@@ -80,8 +81,10 @@ int echo(char **args, t_env *env, int *exit_stat)
 {
 	int x;
 	char **sv;
-
+	int nnl;
+	
 	(void)(env);
+	nnl = 0;
 	sv = args;
 	x = 0;
 	if (!args[0])
@@ -89,8 +92,23 @@ int echo(char **args, t_env *env, int *exit_stat)
 		*exit_stat = 0;
 		return (printf("\n"));
 	}
-	if (!_ft_strcmp("-n", args[0]))
+	//if (!_ft_strcmp("-n", args[0])) // loop until space/end [DONE]
+	//	
+	if(args[0][x++] == '-')
+		while (args[0][x])
+		{
+			if (args[0][x] != 'n')
+			{
+				nnl = 0;
+				break;
+			}
+			if (args[0][x] == 'n')
+				nnl = 1;
+			x++;	
+		}
+	if (nnl)
 		args = &args[1];
+	x = 0;
 	while (args[x])
 	{
 		if (x > 0)
@@ -107,11 +125,11 @@ int echo(char **args, t_env *env, int *exit_stat)
 			return (1);// set retval!!
 		}
 	}
-	if (_ft_strcmp("-n", sv[0]))
+	if (!nnl)
 		if (printf("\n") < 0)
 		{
 			*exit_stat = 1;
-			return (1);// set retval!!
+			return (1); // set retval!!
 		}
 	*exit_stat = 0;
 	return (0);
@@ -159,7 +177,7 @@ int chck_node(t_env *env, char *arg)
 	char *key;
 	char *value;
 
-	split_env_var(arg, &key, &value); // check for malloc fail
+	split_env_var(arg, &key, &value); // Set value to an empty buffer instead of NULL!
 	//(free(key), -1); // NOT VALUE THEN add key, but do not append it to env! (maybe using a flag or smth)
 	if (!valid_key(key))
 		return (-1);
@@ -171,6 +189,7 @@ int chck_node(t_env *env, char *arg)
 	{
 	//	free(env->value); This will be garbage collected later!!!
 		env->value = value;
+		env->only_export = 0;
 	}
 	else
 		return (0);//(free(value), free(key), 0);
@@ -194,23 +213,33 @@ void set_exp(t_env *env, char *key)
 		env->only_export = 1;
 }
 
-int export(char **args, t_env *env, int *exit_stat)
+void unset_exp(t_env *env, char *key)
+{
+	while (env && _ft_strcmp(env->key, key))
+		env = env->next;
+	if (env)
+		env->only_export = 0;
+}
+
+int export(char **args, t_env *env, int *exit_stat) // HANDLE NULL ENVP!!!! // If there is a value, all quotes, else no equal sign [DONE]
 {
 	int x;
 	int c;
 	int opti;
 
-	*exit_stat = 1;
 	c = 0;
 	x = 0;
+	*exit_stat = 0;
 	while (args && args[x])
 		x++;
 	if (x == 0)
 	{
 		while (env)
 		{
-			if (printf("declare -x %s=%s\n", env->key, env->value) < 0)
-				return (1);
+			if (env->only_export)
+				printf("declare -x %s\n", env->key);
+			else
+				printf("declare -x %s=\"%s\"\n", env->key, env->value);
 			env = env->next;
 		}
 	}
@@ -223,7 +252,11 @@ int export(char **args, t_env *env, int *exit_stat)
 			else if (opti == 1)
 				c++;
 			else if (opti == -1)
-				return (printf("Invalid identifier!\n"), 1);
+			{
+				*exit_stat = 1;
+				printf("Invalid identifier!\n"); 
+				c++; // Modified with hamza
+			}
 			else if (opti == 2)
 			{
 				if(!is_there(env, args[c]))
@@ -231,33 +264,38 @@ int export(char **args, t_env *env, int *exit_stat)
 				set_exp(env, args[c++]);
 			}
 		}
-	*exit_stat = 0;
 	return (0);
 }
 
-int unset(char **args, t_env *env, int *exit_stat)
+int unset(char **args, t_env **env, int *exit_stat)
 {
 	int		x;
 	t_env	*prev;
 	t_env	*sv;
 
 	x = 0;
-	sv = env;
+	sv = *env;
 	while (args[x])
 	{
+		prev = 0;
 		if(!valid_key(args[x]))
 		{
 			*exit_stat = 1;
-			return (printf("Invalid identifier!\n"), 1);
+			printf("Invalid identifier!\n");
 		}
-		while (env && _ft_strcmp(env->key, args[x]))
+		while (*env && _ft_strcmp((*env)->key, args[x]))
 		{
-			prev = env;
-			env = env->next;
+			prev = *env;
+			*env = (*env)->next;
 		}
-		if (env)
-			prev->next = env->next; // do not free (double free)!
-		env = sv;
+		if (!prev && *env) // this means it's the head!
+		{
+			printf("nxt %p\n", (*env)->next);
+			sv = (*env)->next;
+		}
+		else if (prev && *env)
+			prev->next = (*env)->next; // do not free (double free)!
+		*env = sv;
 		x++;
 	}
 	*exit_stat = 0;

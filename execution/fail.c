@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/02 21:10:44 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/08 23:19:38 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/13 23:49:01 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void *alloc_wrapper(void *allocation, int mode, void *additional) // This functi
 		return (sv_additional);
 	if (mode)
 	{
-		sv_additional = duplicate_env(sv_additional);
+	//	sv_additional = duplicate_env(sv_additional);
 		while (nodes)
 		{
 			free(nodes->allocation);
@@ -37,7 +37,7 @@ void *alloc_wrapper(void *allocation, int mode, void *additional) // This functi
 	}
 	if (!allocation)
 	{
-		exit(exit_status(256));
+		exit(exit_status(YIELD));
 	}
 	if (!nodes)
 		nodes = ft_lstnew(allocation);
@@ -62,6 +62,13 @@ void *fail(void *ret, int smth) // doesn't matter to set error code, since it's 
 	if (!ret)
 		alloc_wrapper(0, 1, 0); // call with mode set when you want to reset, call with additional set if you have some allocation done that shouldn't be lost if a malloc fails!
 	return (ret);
+}
+
+void *wrap_wrap(void *allocation)
+{
+	if (!allocation)
+		alloc_wrap(0);
+	return (allocation);
 }
 
 void fail_exit()

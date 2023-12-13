@@ -19,3 +19,5 @@ remove all fail(0, 0)
 check if fail_exit() causes leaks
 
 test interrupting syscalls with SIGSTOP
+
+close STD FD IN CHILD

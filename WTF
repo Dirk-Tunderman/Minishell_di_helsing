@@ -1,0 +1,55 @@
+$a expand split no quotes // done
+expand or not expand inside heredoc! //done
+
+
+
+
+cat | cat | ls // ny close FDS // ny probably same
+
+
+
+// recheck the heredoc for crashes bitch
+
+// history is deleted for some reason sometimes
+
+if before env in quoted arg, who cares
+cuz it's joined by default
+however if in ARG you must follow until there is no
+before env!
+
+expansion is stolen "()" by operators (EXCEPT EXECUTABLES, WHICH ARE NOT OPERATORS 
+BUT SPECIAL ARGUMENTS!)
+arg spots, however they are freed if they are not
+bothered!
+
+executables with space in their name shall be executed however executables
+which were expanded but had space in the expansion shall be treated
+of course as a single n
+
+
+expand inside expand
+do not split by space XD aka mind quotes!!
+
+ // minishell_no_alzheimer is for getting the value before it has splitted
+ // there has to be a special function to handle splitting with
+ // quote
+
+ // checker for quotes won't segfault or undef because quotes are checked
+ // on input not after parse!!!!
+
+// the split by quote happens for each pair after the reexpansion
+// so that means it gets the values flat then it splits them, it
+// doesn't split the variables them gets them!
+// quotes that were environment variables are fake quotes??
+
+
+// heredoc stuck with first input
+
+///// test later for null env vars because they can happen in your code!!
+
+I've gotten rid of empty envs made them
+into empty strings in the expand
+
+[IMPORTANT !] set exit status for minishell signals!
+
+./minishell 

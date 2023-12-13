@@ -12,6 +12,7 @@ int error_all_check(t_node *head)
     error = check_redirection_errors(head); // < > >> >>
     if (error)
         return (-1);
+	// UPDATE EXIT STAT
     return (0);
 }
 
@@ -37,7 +38,7 @@ int	check_operator_errors(t_node *head)
 int	check_operator_start_end(t_node *current, t_node *previous)
 {
 	if (current->type == OPERATOR && ((!previous || (previous->type != ARG
-		&& previous->type != QUOTE_ARG && previous->type != CMD && previous->type != BUILT_IN)) || (current->next == NULL)))
+		&& previous->type != QUOTE_ARG && previous->type != CMD)) || (current->next == NULL)))
 	{
 		printf("Pipe error: Operator '|' cannot be at the start or end of a command.\n");
 		return (-1);

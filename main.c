@@ -70,7 +70,7 @@ void    check_here_doc_before_exp(t_node *head)
     t_node *current = head;
     while (current)
     {
-        if (current->type == HERDOC && current->next->before_env != NULL)
+        if (current->type == HERDOC && current->next->type == QUOTE_ARG && current->next->before_env != NULL)
             current->next->data = current->next->before_env;
         current = current->next;
     }
@@ -122,7 +122,7 @@ int main_loop(t_node *head, char **envp)
 
     input = "";
     l_env = envp_to_linked_list(envp);
-    save_alloc(l_env);
+    //save_alloc(l_env);
 	while (1)
 	{
         g_signal_rec = 0;
@@ -134,28 +134,29 @@ int main_loop(t_node *head, char **envp)
         if (!input)
             fail_exit();
         alloc_wrap(input);
-		if (input && ft_strlen(input) && (1) && checker_quotes(input))
+		if (input && ft_strlen(input) && (add_history(input), 1) && checker_quotes(input))
         {
             printf("executing \"%s\"\n", input);
-            add_history(input);
             printf("input: %s\n", input);
 		    lexer(input, &head, l_env);
         	set_redirect_in_nodes(head);
-		    if (error_all_check(head))
-		    	continue;
-		    resolve_path_and_commands(head, l_env);
-            check_here_doc_before_exp(head);
-            printf("\ndisplaylist:\n\n");
-		    display_list(head);
-		    printf("\n");
-		    printf("----------------------------------------------------------------------------\n");
-            t_comparsed *parsed = parsed_single_cmd(head, count_cmd(head), exit_status(256), envp);
-            if (execute_list(parsed, l_env, envp, head)== SYSCALLFAIL)
-                parsed->exit_status = 1;
-            exit_status(parsed->exit_status);
-            restore_fds();
+		    if (!error_all_check(head))
+            {
+                resolve_path_and_commands(head, l_env);
+                printf("\ndisplaylist:\n\n");
+		        display_list(head);
+		        printf("\n");
+                t_comparsed *parsed = parsed_single_cmd(head, count_cmd(head), exit_status(YIELD), envp);
+                parsed->environment = l_env;
+		        printf("----------------------------------------------------------------------------\n");
+                if (execute_list(parsed, &l_env, envp, head) == SYSCALLFAIL)
+                    parsed->exit_status = 1;
+                exit_status(parsed->exit_status);
+                restore_fds(0);
+            }
+            l_env = duplicate_env(l_env);
             fail(0, 0);
-            l_env = alloc_wrapper(0, 2, 0);
+            //l_env = alloc_wrapper(0, 2, 0);
             alloc_wrap_env(l_env);
 		    head = NULL;
             input = 0;
@@ -169,14 +170,33 @@ void ex()
     system("leaks minishell");
 }
 
+void f()
+{
+    system("leaks minishell");
+}
+
 int     main(int argc, char **argv, char **envp)
 {
 	(void)argc;
 	(void)argv;
+    int x;
+    char *key;
+    char *value;
 
+    //atexit(f);
+    x = 0;
+    while (envp && envp[x])
+    {
+        split_env_var(envp[x], &key, &value);
+        if (!_ft_strcmp(key, "SHLVL"))
+        {
+			envp[x] = ft_strjoin(ft_strjoin(key, "="), ft_itoa(ft_atoi(value) + 1));
+            printf("SLVL %s\n", envp[x]);
+        }
+        x++;
+    }
     atexit(ex);
     rl_catch_signals = 0;
-    restore_fds();
+    restore_fds(0);
 	return (main_loop(0, envp));
 }
-

@@ -44,34 +44,6 @@ static char	**ft_free(char **str, int i)
 	return (str);
 }
 
-char	**ft_split(char *str, char c)
-{
-	int		i;
-	int		j;
-	char	**splitted;
-
-	j = 0;
-	i = 0;
-	if (!str)
-		return (NULL);
-	splitted = count_word (str, c);
-	if (!splitted)
-		return (NULL);
-	if (str[0] == '\0')
-		return (splitted[0] = NULL, splitted);
-	while (str[i])
-	{
-		while (str[i] == c)
-			i++;
-		if (str[i] == '\0')
-			break ;
-		splitted[j++] = ft_substr(str, i, ft_lenght_str (str, c, i));
-		if (!splitted[j - 1])
-			return (ft_free(splitted, j));
-		i = i + ft_lenght_str (str, c, i);
-	}
-	return (splitted[j] = NULL, splitted);
-}
 
 t_env	*ft_lstlast(t_env *lst)
 {
@@ -123,26 +95,4 @@ int	ft_lstsize(t_env *lst)
 		i++;
 	}
 	return (i);
-}
-
-int parse_env(char **str, t_data **data)
-{
-    int i;
-    char **tmp;
-
-    i = 0;
-    while (str[i])
-    {
-        tmp = ft_split(str[i], '=');
-        if (i == 0)
-            (*data)->env = create_nodee(tmp[0],tmp[1]);
-        ft_lstadd_back(&(*data)->env,create_nodee(tmp[0], tmp[1]));
-        i++;
-    }
-	while ((*data)->env != NULL)
-    {
-        printf("%s=%s\n", (*data)->env->key, (*data)->env->value);
-        (*data)->env = (*data)->env->next;
-    }
-    return (1);
 }

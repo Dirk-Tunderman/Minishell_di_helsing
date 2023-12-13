@@ -6,6 +6,8 @@ char *find_executable(char *command, t_env *l_env)
     char *path;
     //printf("command: %s\n", command);
 
+    if (is_in(command, '/') || !_ft_strcmp(command, "..") || !_ft_strcmp(command, ".") || !_ft_strcmp(command, ""))// no search if already path component
+        return (NULL);
     path_env = NULL;
     while (l_env)
     {
@@ -41,7 +43,7 @@ char *find_executable(char *command, t_env *l_env)
         ft_strcat(full_path, command);
 
         //printf("two full_path: %s\n", full_path);
-        if (access(full_path, X_OK) == 0)
+        if (access(full_path, F_OK) == 0)
             return (full_path);
         path = ft_strtok_c(NULL, ':'); // recode
     }

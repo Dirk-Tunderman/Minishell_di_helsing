@@ -16,6 +16,14 @@
 		"stdbool.h": "c",
 		"errno.h": "c",
 		"stdio.h": "c",
-		"iterator": "c"
+		"iterator": "c",
+		"__bit_reference": "c",
+		"array": "c",
+		"ios": "c",
+		"__node_handle": "c",
+		"complex": "c",
+		"string": "c",
+		"string_view": "c",
+		"vector": "c"
 	}
 }

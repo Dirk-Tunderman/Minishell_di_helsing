@@ -5,7 +5,7 @@ size_t	ft_strlen(const char *s)
 	int	a;
 
 	a = 0;
-	while (*s != '\x00')
+	while (s && *s != '\x00')
 	{
 		s++;
 		a++;
@@ -31,11 +31,11 @@ char	*ft_strdup( const char *source)
 	char	*p;
 	int		i;
 
-	p = (char *)ft_calloc(ft_strlen(source) + 1 * sizeof(char), 1);
+	p = (char *)ft_calloc(sizeof(char), ft_strlen(source) + 1);
 	if (p == NULL)
 		return (NULL);
 	i = 0;
-	while (source[i])
+	while (source && source[i])
 	{
 		p[i] = source[i];
 		i++;

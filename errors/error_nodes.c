@@ -5,8 +5,8 @@ void     set_redirect_in_nodes(t_node *head)
     t_node *current;
 
     current = head;
-    while (current != NULL) {
-
+    while (current != NULL)
+    {
             if ((ft_strcmp(current->data, "<<") == 0 ||
                 ft_strcmp(current->data, ">>") == 0 ||
                 ft_strcmp(current->data, "<") == 0 ||

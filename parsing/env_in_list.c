@@ -48,7 +48,7 @@ t_env *envp_to_linked_list(char **envp)
 
     head = NULL;
     i = 0;
-    while (envp[i]) 
+    while (envp && envp[i]) 
     {
         append_env_node(&head, envp[i]);
         i++;
