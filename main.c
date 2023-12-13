@@ -164,7 +164,7 @@ int main_loop(t_node *head, char **envp)
 	}
 	return (0);
 }
-
+ 
 void ex()
 {
     system("leaks minishell");
