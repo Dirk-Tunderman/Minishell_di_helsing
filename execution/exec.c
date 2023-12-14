@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/30 13:48:06 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 16:02:27 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/14 20:59:17 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -310,6 +310,7 @@ int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *h
 	(_pipe[0] = -1) && (_pipe[1] = -1);
 	if (set_fds(cmds, &cmds->fds) == SYSCALLFAIL)
 		return (signal(SIGINT, SIG_IGN), restore_fds(0), SYSCALLFAIL);
+	cmds->exit_status = exit_status(YIELD);
 	signal(SIGINT, SIG_IGN);
 	restore_fds(0);
 	while (x < cmds->cmd_count)
@@ -343,16 +344,13 @@ int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *h
 				if (is_builtin(cmds->exec_ready[x][0]) && !det_subshell(cmds))
 				{
 					if (overridefds(cmds, x, _pipe, sv_next) == SYSCALLFAIL)
-					{
-						exit_status(SYSCALLFAIL);
-						fail_exit();
-					}
+						return (close_fds(cmds->fds[x]), close(_pipe[0]), close(_pipe[1]), SYSCALLFAIL);
 					call_respective(cmds->exec_ready[x], &cmds->exit_status, env);
 				}
 				else
 				{
 					if(set_pipe(_pipe, x, cmds->cmd_count) == SYSCALLFAIL)
-						return (SYSCALLFAIL);
+						return (close_fds(cmds->fds[x]), close(_pipe[0]), close(_pipe[1]), SYSCALLFAIL);
 					cmds->uptodate_env = env_toarray(*env);
 					chld_pid = fork();
 					if (chld_pid == -1)

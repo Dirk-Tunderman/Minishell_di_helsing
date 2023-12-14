@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 20:39:26 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 16:08:24 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/14 20:42:38 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,14 +240,17 @@ void jma3_kolchi(t_node **linked_list, char **fill, char **empty, int type_from)
 	empty[0] = 0;
 }
 
-char **get_real_redirs(t_node *rn_linked_list, char **heredocs)
+char **get_real_redirs(t_node *rn_linked_list, char **heredocs, t_node *origin)
 {
 	char **redirs;
-	int x;
-	int	f;
+	static int x;
+	static t_node *sv;
 
-	f = 0;
-	x = 0;
+	if (sv != origin)
+	{
+		sv = origin;
+		x = 0;
+	}
 	redirs =  ft_calloc(sizeof(char *), 4);
 	while (rn_linked_list && rn_linked_list->type != OPERATOR) // filter mingled args
 	{
@@ -517,7 +520,9 @@ t_comparsed *parsed_single_cmd(t_node *linked_list, int cmd_count, int exit_stat
 	int x;
 	t_comparsed *parsed;
 	t_node		*rn_linked_list;
-	
+	t_node *sv;
+
+	sv = linked_list;
 	x = 0;
 	parsed = ft_calloc(sizeof(t_comparsed), 1);
 	parsed->exit_status = exit_stat;
@@ -535,7 +540,7 @@ t_comparsed *parsed_single_cmd(t_node *linked_list, int cmd_count, int exit_stat
 	//	printf("2\n");
 		parsed->exec_ready[x] = get_exec_rdy(&linked_list);
 		//printf("3 %s %s %s %s\n", parsed->exec_ready[x][0], parsed->exec_ready[x][1], parsed->exec_ready[x][2], parsed->exec_ready[x][3]);
-		parsed->real_redirects[x] = get_real_redirs(rn_linked_list, parsed->heredocs);
+		parsed->real_redirects[x] = get_real_redirs(rn_linked_list, parsed->heredocs, sv);
 	//	printf("rl %s %s\n", parsed->real_redirects[x][0], parsed->real_redirects[x][2]);
 		parsed->garbage_redirects_arr[x] = get_garbage_redirs(rn_linked_list, parsed->real_redirects[x]); // redo
 		//printf("trash %s %s %s\n", parsed->garbage_redirects_arr[x][0][0],

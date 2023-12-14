@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/02 13:45:30 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 16:20:55 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/14 20:56:40 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,23 +187,23 @@ int call_heredocs(t_comparsed *cmds, int **fds)
 				detnxttype(cmds->all_thestuff, x)
 				, cmds) == SYSCALLFAIL)
 				return (SYSCALLFAIL);
+			c++;
 		}
-		else
+		else if (cmds->real_redirects[x][1] && cmds->heredocs[c] != cmds->real_redirects[x][1])
 		{
-			while (cmds->heredocs[c] && cmds->heredocs[c] != cmds->real_redirects[x][1])
+			while (cmds->heredocs[c] && cmds->heredocs[c] != cmds->real_redirects[x][1] && cmds->cmd_count)
 			{			
-			//	printf("%s %s\n", cmds->heredocs[c], cmds->real_redirects[x][1]);
 				fake_heredoc(cmds->heredocs[c]);
 				c++;
 			}
-			if (cmds->heredocs[c])
+			if (cmds->heredocs[c] && cmds->cmd_count)
 				if (heredoc(cmds->real_redirects[x][1], &fds[x][1],
 					detnxttype(cmds->all_thestuff, x)
 					, cmds) == SYSCALLFAIL)
 					return (SYSCALLFAIL);
+			if (cmds->heredocs[c])
+				c++;
 		}
-		if (cmds->heredocs[c])
-			c++;
 		x++;
 	}
 	return (0);
