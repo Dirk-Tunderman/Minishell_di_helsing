@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 21:54:31 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 21:03:47 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/14 22:02:57 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -288,10 +288,7 @@ int unset(char **args, t_env **env, int *exit_stat)
 			*env = (*env)->next;
 		}
 		if (!prev && *env)
-		{
-			printf("nxt %p\n", (*env)->next);
 			sv = (*env)->next;
-		}
 		else if (prev && *env)
 			prev->next = (*env)->next;
 		*env = sv;

@@ -20,8 +20,6 @@
 #define ABORTCURRENTCMD 555
 #define ACCESS_DENIED 126
 
-extern int g_signal_rec;
-
 typedef struct s_data t_data;
 typedef struct s_env t_env;
 typedef struct s_hrd t_hrd;
@@ -302,7 +300,7 @@ int echo(char **args, t_env *env, int *exit_stat);
 int change_dir(char **args, t_env *env, int *exit_stat);
 void print_env(char **args, t_env *head, int *exit_stat); 
 void    c_exit(char **args, int *exit_status);
-int main_loop(t_node *head, char **envpp);
+void main_loop(t_node *head, char **envp);
 int exit_status(int value);
 
 

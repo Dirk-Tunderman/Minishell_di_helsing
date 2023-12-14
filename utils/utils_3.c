@@ -41,6 +41,7 @@ void    display_list(t_node *head)
         printf("Data: %s, Type: %d, redirect: %d, path: %s\n space_after: %d\n, before_env: %s\n", current->data, current->type, current->redirect, current->path, current->space_after, current->before_env);
         current = current->next;
     }
+    printf("--------------------------------------------------------------------------------\n");
 }
 
 char *ft_substr(char *s, int start, int len)

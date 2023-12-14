@@ -1,6 +1,5 @@
 #include "minishell.h"
 
-int g_signal_rec;
 
 //https://stackoverflow.com/questions/53165704/readline-c-force-return-of-certain-text-in-readline
 
@@ -12,7 +11,6 @@ void sig_handler(int signo)
     printf("\n");
     rl_redisplay();
     exit_status(1);
-    g_signal_rec = 1;
 }
 
 void sig_init(void)

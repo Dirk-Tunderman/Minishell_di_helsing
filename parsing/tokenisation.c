@@ -42,7 +42,6 @@ void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env
 	}
 	else if (is_operator(input[*i]))
 	{
-		printf("go in operator\n");
 		if (input[*i] == '>' && input[*i + 1] == '>')
 		{
 			data = ft_strdup(">>");

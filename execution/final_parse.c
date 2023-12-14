@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 20:39:26 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 21:06:08 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/14 22:02:25 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,8 +88,7 @@ char **get_exec_rdy(t_node **linked_list)
 	acc = 0;
 	single_execrdy = 0;
 	while ((*linked_list) && (*linked_list)->type != OPERATOR)
-	{/////------
-		printf("OUT %s\n", (*linked_list)->data);
+	{
 		if ((*linked_list) && ((*linked_list)->type == STDIN_RD
 		|| (*linked_list)->type == STDOUT_RD
 		|| (*linked_list)->type == HERDOC || (*linked_list)->type == APPEND))
@@ -106,7 +105,6 @@ char **get_exec_rdy(t_node **linked_list)
 		}
 		else if ((*linked_list))
 		{
-				printf("IN %s\n", (*linked_list)->data);
 				while ((*linked_list) && (*linked_list)->data && !(*linked_list)->data[0] && (*linked_list)->type == ARG)
 					(*linked_list) = (*linked_list)->next;
 				if (*linked_list)
@@ -118,9 +116,7 @@ char **get_exec_rdy(t_node **linked_list)
 				{
 						acc = _join(acc, (*linked_list)->next->data);
 						(*linked_list) = (*linked_list)->next;
-						printf("%s", acc);
 				}
-				printf("%s", acc);
 				single_execrdy = append(single_execrdy, acc);
 				acc = 0;
 		}
@@ -147,7 +143,6 @@ void jma3_kolchi(t_node **linked_list, char **fill, char **empty, int type_from)
 	{
 		if (type_from != HERDOC && (*linked_list)->exp_nosplit)
 		{
-			printf("ENTERED \n");
 			fill[0] = _join(fill[0], (*linked_list)->exp_nosplit);
 			skip_expand_split(linked_list);
 		}
@@ -260,7 +255,6 @@ char	*assemble_garbage(t_node **linked_list, int type_from)
 	{
 		if (type_from != HERDOC && (*linked_list)->exp_nosplit)
 		{
-			printf("ENTERED \n");
 			fill = _join(fill, (*linked_list)->exp_nosplit);
 			skip_expand_split(linked_list);
 		}
@@ -336,7 +330,6 @@ void get_them_forreal(t_node *rn_linked_list, char **dont_be_this, char ***g_red
 			if (!dont_be_this[0] || _ft_strcmp(sv, dont_be_this[0]))
 				g_redirs[2][in++] = sv;
 		}
-		printf("stuck two\n");
 		if (rn_linked_list && (rn_linked_list->type == ARG || rn_linked_list->type == QUOTE_ARG || rn_linked_list->type == CMD ||  rn_linked_list->type == HERDOC))
 			rn_linked_list = rn_linked_list->next;
 	}
@@ -380,7 +373,6 @@ char ***get_garbage_redirs(t_node *rn_linked_list, char **dont_be_this)
 				dont_be_this[0]))
 				count_abort++;
 		}
-		printf("stuck one, %s\n", rn_linked_list->data);
 		if (rn_linked_list && (rn_linked_list->type == ARG || rn_linked_list->type == QUOTE_ARG || rn_linked_list->type == CMD || rn_linked_list->type == HERDOC))
 			rn_linked_list = rn_linked_list->next;
 	}
@@ -433,7 +425,7 @@ t_comparsed *parsed_single_cmd(t_node *linked_list, int cmd_count, int exit_stat
 		rn_linked_list = linked_list;
 		parsed->exec_ready[x] = get_exec_rdy(&linked_list);
 		parsed->real_redirects[x] = get_real_redirs(rn_linked_list, parsed->heredocs, sv);
-		parsed->garbage_redirects_arr[x] = get_garbage_redirs(rn_linked_list, parsed->real_redirects[x]); // redo
+		parsed->garbage_redirects_arr[x] = get_garbage_redirs(rn_linked_list, parsed->real_redirects[x]);
 		x++;
 	}
 	return (parsed);
