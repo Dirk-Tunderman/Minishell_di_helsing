@@ -1,49 +1,5 @@
 #include "../minishell.h"
 
-
-int count_quotes(char *line)
-{
-    int i = 0;
-    int count = 0;
-    while (line[i])
-    {
-        if ((line[i] == '\"' || line[i] == '\''))
-            count++;
-        i++;
-    }
-    return count;
-}
-
-bool check_quotes_correctness(const char *line)
-{
-    char quote_stack[100];
-    int stack_index;
-    int i;
-
-    stack_index = -1;
-    i = 0;
-    while(line[i])
-    {
-        if (line[i] == '\"' || line[i] == '\'')
-        {
-            if (stack_index >= 0 && quote_stack[stack_index] == line[i])
-                stack_index--;
-            else if (stack_index >= 0 && quote_stack[stack_index] != line[i])
-            {
-                stack_index++;
-                quote_stack[stack_index] = line[i];
-            }
-            else
-            {
-                stack_index++;
-                quote_stack[stack_index] = line[i];
-            }
-        }
-        i++;
-    }
-    return stack_index == -1;
-}
-
 int	checker_quotes(char *line)
 {
 	int	i;
@@ -87,22 +43,46 @@ void    display_list(t_node *head)
     }
 }
 
-void    free_node(t_node *node)
+char *ft_substr(char *s, int start, int len)
 {
-    if (node == NULL)
-        return ;
-    free(node->data);
-    free(node);
+    char *res;
+    int i;
+    i = 0;
+    if (start < 0)
+        start = 0;
+    if (len < 0)
+        len = 0;
+    if (start > ft_strlen(s))
+        return (NULL);
+    if (len > ft_strlen(s) - start)
+        len = ft_strlen(s) - start;
+    res = (char *)malloc(len + 1 * sizeof(char));
+    if (res == NULL)
+        return (NULL);
+    while (i < len)
+    {
+        res[i] = s[start];
+        i++;
+        start++;
+    }
+    res[i] = '\0';
+    return (res);
 }
 
-void    free_list(t_node *head)
+char *char_to_str(char c)
 {
-    t_node *next;
+	char *str;
 
-    while (head != NULL)
-    {
-        next = head->next;
-        free_node(head);
-        head = next;
-    }
+	str = ft_calloc(2 * sizeof(char), 1);
+	if (!str)
+		return NULL;
+	str[0] = c;
+	str[1] = '\0';
+
+	return str;
+}
+
+int ft_isalnum(char c) 
+{
+	return (('0' <= c && c <= '9') || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'));
 }

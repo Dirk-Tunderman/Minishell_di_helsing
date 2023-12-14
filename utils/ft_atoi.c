@@ -6,51 +6,12 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/06 21:23:44 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 17:12:09 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/14 21:04:02 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
 #include "minishell.h"
-/*
-int ft_pow (int val, int power)
-{
-	int a;
-
-	a = 0;
-	if (power == 0 && val == 0)
-		return (0);
-	if (power == 0)
-		return (1);
-	while (a < power - 1)
-	{
-		val = val * val;
-		a++;
-	}
-	return (val);
-}
-
-int negative(const char *str, int a)
-{
-	int save;
-	long returned;
-	int power;
-
-	returned = 0;
-	power = 0;
-	save = a;
-	while (str[a] >= 48 && str[a] <= 57)
-		a++;
-	a--;
-	while (a >= save)
-	{
-		returned -= (str[a] - 48) * ft_pow(10, power);
-		a--;
-		power++;
-	}
-	return (returned);
-}
-*/
 
 long	ft_nbcmp(const char *s1, const char *s2)
 {

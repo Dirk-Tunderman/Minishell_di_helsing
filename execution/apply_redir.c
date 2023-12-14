@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/02 13:45:30 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 20:56:40 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/14 21:02:56 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,9 @@ int heredoc(char *delimiter, int *fds, int type, t_comparsed *cmds)
 		close(fds[1]);
 		return (0);
 	}
-	while (_ft_strcmp(result, delimiter)) // still issue with quotes expanding interpret inside
+	while (_ft_strcmp(result, delimiter))
 	{
-		intheenv = get_quoted_word(result, &(int){-1}, cmds->environment, '\"', 1); // '' is same as ""
+		intheenv = get_quoted_word(result, &(int){-1}, cmds->environment, '\"', 1);
 		if (type != QUOTE_ARG)
 		{
 		 	if (write(fds[1], intheenv[1], ft_strlen(intheenv[1])) == -1)
@@ -49,12 +49,10 @@ int heredoc(char *delimiter, int *fds, int type, t_comparsed *cmds)
 			return (0);
 		}
 	}
-	//printf("pipe %d\n", fds[1]);
 	free(result);
-	close(fds[1]); //????
+	close(fds[1]);
 	return (0);
 }
-// implement history for heredoc
 
 int set_redirects(char **redirects, int *fds)
 {
@@ -63,8 +61,7 @@ int set_redirects(char **redirects, int *fds)
 		fds[0] = open(redirects[0], O_RDONLY, NULL);
 		if (fds[0] == -1)
 		{
-			printf("Error opening file %s\n", redirects[0]); // SET ERROR CODE!
-			// these should be reset() instead
+			printf("Error opening file %s\n", redirects[0]);
 			return (ABORTCURRENTCMD);
 		}	
 	}
@@ -73,7 +70,7 @@ int set_redirects(char **redirects, int *fds)
 		fds[3] = open(redirects[2], O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU);
 		if (fds[3] == -1)
 		{
-			printf("Error opening file %s\n", redirects[2]); // SET ERROR CODE!
+			printf("Error opening file %s\n", redirects[2]);
 			return (ABORTCURRENTCMD);
 		}
 	}
@@ -82,7 +79,7 @@ int set_redirects(char **redirects, int *fds)
 		fds[4] = open(redirects[3], O_WRONLY | O_CREAT, S_IRWXU);
 		if (fds[4] == -1)
 		{
-			printf("Error opening file %s\n", redirects[3]); // SET ERROR CODE!
+			printf("Error opening file %s\n", redirects[3]);
 			return (ABORTCURRENTCMD);
 		}
 	}
@@ -138,7 +135,7 @@ int fake_heredoc(char *delimiter)
 	return (0);
 }
 
-int detnxttype(t_node *ll, int x) // DEC 13, VERIFY LATER!!!
+int detnxttype(t_node *ll, int x)
 {
 	t_node* prev;
 	int c;
@@ -160,9 +157,6 @@ int detnxttype(t_node *ll, int x) // DEC 13, VERIFY LATER!!!
 		ll = ll->next;
 	}
 	return (ARG);
-	//while (ll && (addr != ll->data && addr != ll->before_env))
-	//	ll = ll->next;
-	//return (ll->type);
 }
 
 int call_heredocs(t_comparsed *cmds, int **fds)
@@ -174,13 +168,7 @@ int call_heredocs(t_comparsed *cmds, int **fds)
 	x = 0;
 	while (x < cmds->cmd_count)
 	{
-		//printf("HERDOC %s\n", cmds->heredocs[c]);
 		fds[x] = set_invalid(ft_calloc(sizeof(int), 5));
-		//if (cmds->real_redirects[x][1])
-		//{
-		// HEREDOC YOU CLOSED FILE DESCRIPTOR SOMEWHERE/DIDN'T OPEN!
-		// cmp real redir with current before env!
-		// ONLY COMPARE BY ADDRESS!
 		if (cmds->real_redirects[x][1] && cmds->heredocs[c] == cmds->real_redirects[x][1]) 
 		{
 			if (heredoc(cmds->real_redirects[x][1], &fds[x][1],
@@ -250,5 +238,5 @@ int set_fds(t_comparsed *cmds, int ***fds)
 	*fds = ft_calloc(sizeof(int *), cmds->cmd_count);
  	end_command(cmds);
 	sigaction(SIGINT, &(struct sigaction){.__sigaction_u.__sa_handler = herestop, .sa_mask = type, .sa_flags = 0}, NULL);
-	return (call_heredocs(cmds, *fds)); // fds are allocated here
+	return (call_heredocs(cmds, *fds));
 }

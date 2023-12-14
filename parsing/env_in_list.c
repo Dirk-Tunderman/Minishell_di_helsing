@@ -12,7 +12,7 @@ void split_env_var(char *env_var, char **key, char **value)
         return;
     }
     *key = ft_strndup(env_var, pos - env_var);
-    *value = ft_strdup(pos + 1); // might be null
+    *value = ft_strdup(pos + 1);
 }
 
 t_env *new_env_node(char *env_var) 

@@ -40,6 +40,4 @@ void call_respective(char **cmd, int *exit_stat, t_env **env)
 		print_env(&cmd[1], *env, exit_stat);
 	if (!_ft_strcmp(cmd[0], "exit"))
 		c_exit(&cmd[1], exit_stat);
-		//env_builtin(&cmd[1], env, exit_stat); // for dirk
-		//exit_builtin(&cmd[1], env, exit_stat); // for dirk
 }

@@ -1,6 +1,16 @@
-#include "minishell.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/12/14 21:02:14 by eamrati           #+#    #+#             */
+/*   Updated: 2023/12/14 21:59:29 by eamrati          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-// https://docs.rtems.org/releases/4.5.1-pre3/toolsdoc/gdb-5.0-docs/readline/readline00030.html
+#include "minishell.h"
 
 char	*ft_strdup(const char *s1)
 {
@@ -20,11 +30,6 @@ char	*ft_strdup(const char *s1)
 	return (str);
 }
 
-void	resolve_path_and_commands(t_node *head, t_env *l_env)
-{
-    resolve_path(head, l_env);
-}
-
 int exit_status(int value)
 {
     static int status;
@@ -36,22 +41,6 @@ int exit_status(int value)
     return (0);
 }
 
-void print_envp(char **envp) {
-    int i = 0;
-    while (envp[i]) {
-        printf("%s\n", envp[i]);
-        i++;
-    }
-}
-
-int cnt_env(t_env *current) {
-    int x = 0;
-    while (current) {
-        current = current->next;
-    x++;
-    }
-    return x;
-}
 int count_cmd(t_node *head)
 {
     int count = 1;
@@ -63,20 +52,6 @@ int count_cmd(t_node *head)
     }
     return (count);
 }
-
-
-void    check_here_doc_before_exp(t_node *head)
-{
-    t_node *current = head;
-    while (current)
-    {
-        if (current->type == HERDOC && current->next->type == QUOTE_ARG && current->next->before_env != NULL)
-            current->next->data = current->next->before_env;
-        current = current->next;
-    }
-}
-
-//--------------------------------------------------------------------------------------//
 
 t_env *duplicate_env(t_env *env)
 {
@@ -115,6 +90,8 @@ void alloc_wrap_env(t_env *env)
     }
 }
 
+
+
 int main_loop(t_node *head, char **envp)
 {
 	char    *input;
@@ -122,12 +99,9 @@ int main_loop(t_node *head, char **envp)
 
     input = "";
     l_env = envp_to_linked_list(envp);
-    //save_alloc(l_env);
 	while (1)
 	{
         g_signal_rec = 0;
-       // if(!input)
-       //     printf("\n");
         sig_init();
         input = readline("minishell$: ");
         signal(SIGINT, SIG_IGN);
@@ -142,7 +116,7 @@ int main_loop(t_node *head, char **envp)
         	set_redirect_in_nodes(head);
 		    if (!error_all_check(head))
             {
-                resolve_path_and_commands(head, l_env);
+                resolve_path(head, l_env);
                 printf("\ndisplaylist:\n\n");
 		        display_list(head);
 		        printf("\n");
@@ -156,7 +130,6 @@ int main_loop(t_node *head, char **envp)
             }
             l_env = duplicate_env(l_env);
             fail(0, 0);
-            //l_env = alloc_wrapper(0, 2, 0);
             alloc_wrap_env(l_env);
 		    head = NULL;
             input = 0;
@@ -165,16 +138,6 @@ int main_loop(t_node *head, char **envp)
 	return (0);
 }
  
-void ex()
-{
-    system("leaks minishell");
-}
-
-void f()
-{
-    system("leaks minishell");
-}
-
 int     main(int argc, char **argv, char **envp)
 {
 	(void)argc;
@@ -183,19 +146,14 @@ int     main(int argc, char **argv, char **envp)
     char *key;
     char *value;
 
-    //atexit(f);
     x = 0;
     while (envp && envp[x])
     {
         split_env_var(envp[x], &key, &value);
         if (!_ft_strcmp(key, "SHLVL"))
-        {
 			envp[x] = ft_strjoin(ft_strjoin(key, "="), ft_itoa(ft_atoi(value) + 1));
-            printf("SLVL %s\n", envp[x]);
-        }
         x++;
     }
-  //  atexit(ex);
     rl_catch_signals = 0;
     restore_fds(0);
 	return (main_loop(0, envp));

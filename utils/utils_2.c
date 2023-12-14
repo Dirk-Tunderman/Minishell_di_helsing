@@ -33,30 +33,6 @@ int ft_strcmp(const char *str1, const char *str2)
     return (unsigned char)str1[i] - (unsigned char)str2[i];
 }
 
-char	*ft_strtrim(char *s1, char *set)
-{
-	size_t	i;
-	size_t	j;
-
-	i = 0;
-	if (!s1 || !set)
-		return (NULL);
-	while (s1[i])
-	{
-		if (!ft_strchr(set, s1[i]))
-			break ;
-		i++;
-	}
-	j = ft_strlen(s1);
-	while (j)
-	{
-		if (!ft_strchr(set, s1[j]))
-			break ;
-		j--;
-	}
-	return (ft_substr(s1, i, j + 1 - i));
-}
-
 size_t	ft_strlcpy(char *dst, const char *src, size_t size)
 {
 	size_t	i;
@@ -78,32 +54,6 @@ size_t	ft_strlcpy(char *dst, const char *src, size_t size)
 		dst[i] = '\0';
 	}
 	return (count);
-}
-
-size_t	ft_strlcat(char *dst, const char *src, size_t dstsize)
-{
-	size_t	j;
-	size_t	dlen;
-	size_t	slen;
-	size_t	res;
-
-	slen = ft_strlen(src);
-	dlen = ft_strlen(dst);
-	if (dstsize == 0)
-		res = dlen;
-	if (dlen < dstsize)
-		res = slen + dlen;
-	else
-		res = dstsize + slen;
-	j = 0;
-	while (src[j] && (dlen + 1) < dstsize)
-	{
-		dst[dlen] = src[j];
-		dlen++;
-		j++;
-	}
-	dst[dlen] = '\0';
-	return (res);
 }
 
 int	ft_strncmp(const char *s1, const char *s2, size_t n)

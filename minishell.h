@@ -35,36 +35,36 @@ typedef struct s_redirect t_redirect;
 	OPERATOR,
 	ARG,
 	QUOTE_ARG,
-	NONE, // useless
+	NONE,
 	CMD,
 	BUILT_IN,
 	STDIN_RD,
 	STDOUT_RD,
 	HERDOC,
 	APPEND,    
-	REPROMPT,// useless
+	REPROMPT,
 } t_token;
 
-typedef struct s_data //stores the general data of the shell
+typedef struct s_data
 {
 	t_cmd *cmd;
 	char *line;
 	t_env *env;
 } t_data;
 
-typedef struct s_cmd //stores the commands of the shell
+typedef struct s_cmd
 { 
 	char *cmd;
-	char **argv;//
-	char *opt;//delete
+	char **argv;
+	char *opt;
 	int x;
 	t_hrd *hrd;
 	struct s_cmd *next;
 } t_cmd;
 
 typedef struct s_command {
-	char			**single_cmd; // alleen eerste arg wordt uitgevoerd
-	unsigned int	num_of_arguments; //
+	char			**single_cmd;
+	unsigned int	num_of_arguments;
 	t_redirect		*redirect_arr;
 	int				redirect_count;
 }	t_command;
@@ -77,7 +77,7 @@ typedef struct s_cmd_full
 	t_env *env;
 } t_cmd_full;
 
-typedef struct s_env //stores the environment
+typedef struct s_env
 {
 	char *key;
 	char *value;
@@ -117,21 +117,17 @@ typedef struct s_lexi
 }		t_lexi;
 
 
-typedef struct s_hrd //stores the herdoc of the shell
+typedef struct s_hrd
 {
 	char *cmd;
 	char **f_name;
 	int x;
 } t_hrd;
 
-//enviornment
+//Environment
 char get_env_total();
-int spaceflag_d_quote(char *input, int *i);
-int	spaceflag_word(char *input, int *i);
-int space_flag_s_quote(char *input, int *i);
-int	spaceflag_op(char *input, int *i);
 
-// tokenisation
+//Tokenisation
 void lexer(char *input, t_node **head, t_env *l_env);
 void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env *l_env);
 char **get_quoted_word(char *input, int *i, t_env *l_env, char quote_type, int different);
@@ -141,24 +137,18 @@ char *get_before_env_varr(char *input, int temp);
 
 char *get_before_env_var(char *input, int end, int start);
 
-int check_end_token_quote(char *input, char character, int start);
-int	check_end_token_alnum(char *input, int start);
 char *find_env_var(const char *var_name, t_env *l_env);
 
-//int check_end_token_alnum(char *input, char character, int start);
-int check_end_token(char *input, char character, int start);
 t_node *create_node(char *str, t_token type);
 int	add_token_list(t_node **head, char *input);
 
-//int add_token_list(t_node **head, char *input, int start, int end);
 int is_shell_command(char *str);
 void append_node(t_node **head, char *data, t_token type, int space_flag, char *before_env);
 char *get_env_var(char *input, int *i, t_env *l_env);
 char *get_env_var_ex(char *input, int i);
-void check_and_set_redirect(t_node *head);
 char *expand_env_in_word(const char *word, t_env *l_env, bool is_single_quoted);
 
-// error_handling
+//Error handling
 int error_all_check(t_node *head);
 int check_operator_errors(t_node *head);
 int check_operator_start_end(t_node *current, t_node *previous);
@@ -169,7 +159,7 @@ int check_filename_errors(t_node *head);
 int check_pipe_errors(t_node *head);
 int check_invalid_chars(char *data, char *invalid_chars);
 int	checker_quotes(char *line);
-bool check_quotes_correctness(const char *line);
+
 // error_nodes
 void  set_redirect_in_nodes(t_node *head);
 int check_redirect(t_node *head);
@@ -178,12 +168,12 @@ int check_redirect_pipe(t_node *head);
 void display_excute_list(t_excute *head);
 int	set_and_check_redirect(t_node *head);
 
-//resolution
+//Resolution
 char *find_executable(char *command,t_env *l_env);
 void resolve_path(t_node *head, t_env *l_env);
 void resolve_commands(t_node *head, t_env *l_env);
 
-// utils
+// Utils
 int ft_isspace(int c);
 int is_operator(char c);
 char *char_to_str(char c);
@@ -197,17 +187,13 @@ char *del_substr(char *input, int start, int len);
 char *ft_strjoin(char const *s1, char const *s2);
 char *ft_strndup(const char *str, size_t n);
 int	ft_strncmp(const char *s1, const char *s2, size_t n);
-size_t	ft_strlcat(char *dst, const char *src, size_t dstsize);
 size_t	ft_strlcpy(char *dst, const char *src, size_t size);
-char *ft_strltok(char *str, const char *delim);
 char *ft_strcpy(char *dest, const char *src);
 char *ft_strcat(char *dest, const char *src);
 char *ft_strtok(char *str, const char *delim);
-void	*ft_memset(void *b, int c, size_t len);
-size_t ft_strnlen(const char *s, size_t maxlen);
 char *ft_strncpy(char *dest, const char *src, size_t n) ;
 
-//signals
+//Signals
 void    sig_handler(int signo);
 void	sig_init(void);
 void sig_reset();
@@ -218,42 +204,18 @@ char *ft_strchr(const char *s, int c);
 int ft_strcmp(const char *str1, const char *str2);
 char	*m_ft_strdup(const char *s1);
 char	*ft_strdup(const char *s1);
-char *ft_strtrim(char *s1, char *set);
 char *ft_strtok_c(char *str, char delim) ;
 
 // utils_3
 int checker_quotes(char *line);
 void display_list(t_node *head);
-void free_node(t_node *node);
-void free_list(t_node *head);
 char	**ft_split(char const *s);
-int is_command(char *data);
 
-//cmd
-// t_cmd* init_cmd_list();
-t_cmd* create_cmd_node();
-void transfer_node_to_cmd(t_node* node, t_cmd* cmd);
-void display_cmd_list(t_cmd *head);
-
-//env_to_list
+//Env_to_list
 void split_env_var(char *env_var, char **key, char **value);
 t_env *new_env_node(char *env_var);
 void append_env_node(t_env **head, char *env_var);
 t_env *envp_to_linked_list(char **envp);
-
-
-
-//after 27-nov
-t_cmd_full *create_cmd_full();
-void parse_cmd_list(t_cmd_full **cmd_full, t_node *head , t_env *l_env, char *input);
-int count_cmd(t_node *head);
-//void parse_cmd_arr(t_cmd_full *cmd_full, t_command *cmd_arr, char *input);
-void parse_cmd_arr(t_cmd_full *cmd_full, char *input);
-
-
-//executor
-
-
 
 typedef struct s_quickfix
 {
@@ -279,12 +241,16 @@ typedef struct s_opens
     struct s_opens *next;
 }   t_opens;
 
+// real [STDIN, HERDOC, STDOUT, APPEND] 
+// fake [[OVERRIDE, OVERRIDE, 0], [NOP, NOP, 0] [HEREDOC, HEREDOC, 0]]
+// fds [STDIN_FD <, HERDOC_RD, HERDOC_WR, STDOUT_FD >, APPEND_FD >>]
+
 typedef struct s_comparsed
 {
     char ***exec_ready;
-    char ***real_redirects; // [STDIN, HERDOC, STDOUT, APPEND] 
-    char ****garbage_redirects_arr; // with eff // [[OVERRIDE, OVERRIDE, 0], [NOP, NOP, 0] [HEREDOC, HEREDOC, 0]]
-    int     **fds; // [STDIN_FD <, HERDOC_RD, HERDOC_WR, STDOUT_FD >, APPEND_FD >>]
+    char ***real_redirects;
+    char ****garbage_redirects_arr;
+    int     **fds; 
     int     cmd_count;
 	t_node	*all_thestuff;
 	t_env	*environment;
@@ -318,8 +284,8 @@ char **env_toarray(t_env *env);
 unsigned char _ft_strcmp(char *str1, char *str2);
 char *skip_expand_split(t_node **linked_list);
 int is_in(char *cmd, char c);
-// to be used with append_env_node!
 
+// to be used with append_env_node!
 int exit_status(int value);
 void *fail(void *ret, int smth);
 void restore_fds();
@@ -342,7 +308,6 @@ int exit_status(int value);
 
 int	ft_atoi(const char *str);
 char	*ft_itoa(int n);
-void print_envp(char **envp);
 void print_env_list(t_env *head);
 void	ft_bzero(void *s, size_t n);
 int	is_int0(char *arg);

@@ -6,7 +6,7 @@
 /*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/30 13:48:06 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 20:59:17 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/14 21:01:43 by eamrati          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,18 +47,14 @@ int inc_val(t_env *env, char *arg)
 	char *key;
 	char *value;
 
-	split_env_var(arg, &key, &value); // check for malloc fail
-	//(free(key), -1); // NOT VALUE THEN add key, but do not append it to env! (maybe using a flag or smth)
+	split_env_var(arg, &key, &value);
 	while (env && _ft_strcmp(env->key, key))
 		env = env->next;
 	if (env)
-	{
-	//	free(env->value); This will be garbage collected later!!!
 		env->value = env->value + 1;
-	}
 	else
-		return (0);//(free(value), free(key), 0);
-	return (1);//(free(key), 1);
+		return (0);
+	return (1);
 }
 
 int is_builtin(char *cmd)
@@ -76,7 +72,7 @@ int apply_garbage_redir(char ***garbage_redirects_arr)
 	int fd;
 
 	x = 0;
-	while (garbage_redirects_arr[0][x]) // OVERRIDE
+	while (garbage_redirects_arr[0][x])
 	{
 		fd = open(garbage_redirects_arr[0][x], O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU);
 		if (fd == -1)
@@ -89,7 +85,7 @@ int apply_garbage_redir(char ***garbage_redirects_arr)
 		x++;
 	}
 	x = 0;
-	while (garbage_redirects_arr[1][x]) // APPEND
+	while (garbage_redirects_arr[1][x])
 	{
 		fd = open(garbage_redirects_arr[1][x], O_WRONLY | O_CREAT, S_IRWXU);
 		if (fd == -1)
@@ -102,7 +98,7 @@ int apply_garbage_redir(char ***garbage_redirects_arr)
 		x++;
 	}
 	x = 0;
-	while (garbage_redirects_arr[2][x]) // HEREDOC
+	while (garbage_redirects_arr[2][x])
 	{
 		fd = open(garbage_redirects_arr[2][x], O_RDONLY, S_IRWXU);
 		if (fd == -1)
@@ -122,33 +118,18 @@ int det_subshell(t_comparsed *cmds)
 	int subshell;
 	
 	subshell = 1;
-	if (cmds->cmd_count == 1) // check for empty commandline
+	if (cmds->cmd_count == 1)
 		subshell = 0;
-//	if (x == cmds->cmd_count - 1 && is_builtin(cmds->exec_ready[x][0]))
-	//	subshell = 0;
 	return (subshell);
 }
 
-/*If the parent process does not close the write-end of the pipe,
-then the child will block forever in the call to read waiting more more data.
-(The read call will block if there's any open file descriptor associated with the write-end of the pipe.)
-*/
 
 int set_pipe(int *_pipe, int x, int cmd_count)
 {
-// if sv_next is set, it is meat for you, use it and set it again if there is someone following you
-	//if (sv_next != -1)
-	//{
-	//	printf("%d\n", _pipe[1]);
-	//	close(_pipe[1]);
-	//}
 	if (cmd_count > 1 && x < cmd_count - 1 && pipe(_pipe))
 		return (SYSCALLFAIL);
 	return (0);
 }
-
-// pipes, just take the endpoint you need and forget the other
-// redirectors, you have to dup the respective endpoint
 
 int overridefds(t_comparsed *cmds, int x, int *_pipe, int sv_next)
 {
@@ -159,7 +140,7 @@ int overridefds(t_comparsed *cmds, int x, int *_pipe, int sv_next)
 	if (cmds->fds[x][3] != -1)
 	{
 		if(dup2(cmds->fds[x][3], STDOUT_FILENO) == -1)
-			return (SYSCALLFAIL);// reset instead
+			return (SYSCALLFAIL);
 	}
 	else if (cmds->fds[x][4] != -1)
 	{
@@ -172,10 +153,8 @@ int overridefds(t_comparsed *cmds, int x, int *_pipe, int sv_next)
 			return (close(_pipe[0]), SYSCALLFAIL);
 		close(_pipe[0]);
 	}
-// STDIN
 	if (cmds->fds[x][0] != -1)
 	{
-		//if ()
 		if(dup2(cmds->fds[x][0], STDIN_FILENO) == -1)
 			return (SYSCALLFAIL);
 	}
@@ -187,19 +166,14 @@ int overridefds(t_comparsed *cmds, int x, int *_pipe, int sv_next)
 	else if (x > 0)
 	{
 		if (sv_next == -2)
-			close(STDIN_FILENO); // DEC 11 test this later
+			close(STDIN_FILENO);
 		else
 		{
 			if (dup2(sv_next, STDIN_FILENO) == -1)
-				return (close(_pipe[0]), SYSCALLFAIL); // this should be different for child process exit!!!!
+				return (close(_pipe[0]), SYSCALLFAIL);
 			close(_pipe[0]);
 		}
 	}
-	//else
-	//{
-	//	if (dup2(dup(STDIN_FILENO), STDIN_FILENO) == -1)
-	//		return (SYSCALLFAIL);		
-	//}
 	if (cmds->fds[x][3] == -1 && cmds->real_redirects[x][2])
 	{
 		close(STDOUT_FILENO);
@@ -208,8 +182,7 @@ int overridefds(t_comparsed *cmds, int x, int *_pipe, int sv_next)
 	{
 		close(STDOUT_FILENO);
 	}
-	// cmds->fds[x][1] == -1 && cmds->real_redirects[x][1]
-	if (cmds->fds[x][0] == -1 && cmds->real_redirects[x][0]) // unsuccessful opens
+	if (cmds->fds[x][0] == -1 && cmds->real_redirects[x][0])
 	{	
 		close(STDIN_FILENO);
 	}
@@ -288,7 +261,6 @@ int is_in(char *cmd, char c)
 	return (0);
 }
 
-// https://unix.stackexchange.com/questions/673855/i-dont-understand-cat-behaviour-when-running-cat-ls
 int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *head)
 {
 	(void) head;
@@ -300,9 +272,7 @@ int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *h
 	int sv_next;
 	int _pipe[2];
 	(void) original_envp;
-	// check null cmd_full
-	 // this should be called in main instead, for first set
-	// mind signals ! DEC 4
+
 	sv_next = -1;
 	x = 0;
 	last_proc = 0;
@@ -320,11 +290,11 @@ int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *h
 		x++;
 	}
 	x = 0;
-	while (cmds && x < cmds->cmd_count) // ->exec_ready[x]) // don't use command count!!!, a command can be empty!!
+	while (cmds && x < cmds->cmd_count)
 	{
 		if (apply_garbage_redir(cmds->garbage_redirects_arr[x]) == ABORTCURRENTCMD)
 		{
-			close_fds(cmds->fds[x]); // DEC 11, CHECK THIS !!!
+			close_fds(cmds->fds[x]);
 			close(_pipe[0]);
 			close(_pipe[1]);
 			sv_next = -2;
@@ -333,14 +303,12 @@ int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *h
 		{
 			if (set_redirects(cmds->real_redirects[x], cmds->fds[x]) == ABORTCURRENTCMD)
 			{
-			//	close_fds(cmds->fds[x]); // dec 13
-				close(_pipe[0]); // check this later, added with Hamza
+				close(_pipe[0]);
 				close(_pipe[1]);
 				sv_next = -2;
 			}
 			else if (cmds->exec_ready[x] && cmds->exec_ready[x][0])
 			{
-				// setup of program ends here
 				if (is_builtin(cmds->exec_ready[x][0]) && !det_subshell(cmds))
 				{
 					if (overridefds(cmds, x, _pipe, sv_next) == SYSCALLFAIL)
@@ -354,7 +322,7 @@ int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *h
 					cmds->uptodate_env = env_toarray(*env);
 					chld_pid = fork();
 					if (chld_pid == -1)
-						return (SYSCALLFAIL);	//<<--- reset this//reset("Issue forking child!"); //
+						return (SYSCALLFAIL);
 					if (cmds->exec_ready[x] == last_proc)
 						pid_last = chld_pid;
 					if (!chld_pid)
@@ -365,11 +333,8 @@ int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *h
 							exit_status(SYSCALLFAIL);
 							fail_exit();
 						}
-						//close(STDERR_FILENO);
 						signal(SIGINT, SIG_DFL);
 						signal(SIGQUIT, SIG_DFL);
-					//	write(2, cmds->exec_ready[x][0], 2);
-					//	write(2, cmds->exec_ready[x][1], 2);
 						if (is_builtin(cmds->exec_ready[x][0]))
 						{
 							call_respective(cmds->exec_ready[x], &cmds->exit_status, env);
@@ -387,8 +352,7 @@ int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *h
 						}
 						else if(is_in(cmds->exec_ready[x][0], '/') && execve(cmds->exec_ready[x][0], cmds->exec_ready[x], cmds->uptodate_env) == -1)
 						{ 
-							if ( // this is requisite because without /, no lookup is done. All commands must have path specifiers to be executed. Access checks current path and can mess things up
-								!access(cmds->exec_ready[x][0], F_OK) && access(cmds->exec_ready[x][0], X_OK))
+							if (!access(cmds->exec_ready[x][0], F_OK) && access(cmds->exec_ready[x][0], X_OK))
 							{
 								exit_status(ACCESS_DENIED);
 								write(2, "Permission issue.\n", ft_strlen("Permission issue.\n"));
@@ -422,45 +386,9 @@ int execute_list(t_comparsed *cmds, t_env **env, char **original_envp, t_node *h
 			cmds->exit_status = WEXITSTATUS(cmds->exit_status);
 		else if (last_proc && pid_last == pid_wait && WIFSIGNALED(cmds->exit_status))
 			cmds->exit_status = 128 + WTERMSIG(cmds->exit_status);
-		// this should be at the end as well! because the signal handler might screw things up!
 		if (last_proc && pid_last == pid_wait && cmds->exit_status > 255)
 			cmds->exit_status = 255;
-		///// raises the result of what was just evaluated
 		pid_wait = waitpid(-1, &cmds->exit_status, 0);
 	}
 	return (0);
 }
-
-/*  
-// The execve syscall will make a copy of the args, no need to expect crash in child process
-Redirectors that are overriden output NULL to the target they locked
-pipes can be overriden by following input redirects!
-
-EVEN BUILTINS ARE RUN IN A SUBSHELL WHEN THERE ARE PIPES!
-
-RESET THE SIGNAL HANDLERS AFTER FORK!
-
-fork:  The child process shall have its own copy of the parent's file descriptors. 
-Each of the child's file descriptors shall refer to the same open file description 
-with the corresponding file descriptor of the parent. 
-execve: By default, file descriptors remain open across an execve(). 
-
-the fore of a redirector is always a file or stream
-
-redirector only captures what's immediately after it
-it applies the redirection to the command in happens to be with
-
-Builtin commands that are invoked as part of a pipeline are also executed 
-in a subshell environment. Changes made to the subshell environment cannot affect the shell’s
- execution environment. 
-
-
-The current envp is inherited in the subshell!
-
-
-waitpid gets the ret value of process, don't worry!
-
-if you don't wait for processes they fill the kernel table and you won't be able to launch processes anymore in the system !
-
-waitpid is non-blocking
-*/

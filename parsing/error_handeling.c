@@ -9,19 +9,18 @@ int error_all_check(t_node *head)
 		exit_status(0);
 		return (-1);
 	}
-	error = check_operator_errors(head); /// PIPE
+	error = check_operator_errors(head);
    	if (error)
 	{
 		exit_status(255);
 	    return (-1);
 	}
-    error = check_redirection_errors(head); // < > >> >>
+    error = check_redirection_errors(head);
     if (error)
 	{
 		exit_status(255);
 	    return (-1);
 	}
-	// UPDATE EXIT STAT
     return (0);
 }
 
@@ -72,5 +71,21 @@ int check_redirection_errors(t_node *head)
 	return (0);
 }
 
+void     set_redirect_in_nodes(t_node *head) 
+{
+    t_node *current;
 
+    current = head;
+    while (current != NULL)
+    {
+            if ((ft_strcmp(current->data, "<<") == 0 ||
+                ft_strcmp(current->data, ">>") == 0 ||
+                ft_strcmp(current->data, "<") == 0 ||
+                ft_strcmp(current->data, ">") == 0) && current->type != QUOTE_ARG && current->type != ARG && current->type != CMD)
+                    current->redirect = 1;
+            else 
+                current->redirect = 0;
+        current = current->next;
+    }
+}
 
