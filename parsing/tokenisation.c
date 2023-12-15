@@ -1,124 +1,75 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   tokenisation.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/12/15 16:08:03 by dtunderm          #+#    #+#             */
+/*   Updated: 2023/12/15 19:42:26 by dtunderm         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
-void lexer(char *input, t_node **head, t_env *l_env)
+void	lexer(char *input, t_node **head, t_env *l_env)
 {
-	int i = 0;
-	t_token prev_type = OPERATOR;
+	int	i;
+
+	i = 0;
 	while (input[i])
 	{
 		if (ft_isspace(input[i]))
 			i++;
-		else 
-			process_token(input, &i, &prev_type, head, l_env);
+		else
+			process_token(input, &i, head, l_env);
 	}
 }
 
-void minishell_no_alzheimer(t_node *head, char *data)
+void	minishell_no_alzheimer(t_node *head, char *data)
 {
-	while(head->next)
+	while (head->next)
 		head = head->next;
 	head->exp_nosplit = data;
 }
 
-void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env *l_env)
+char	**get_result(char *input, int *i, t_env *l_env, t_p_t_p *par)
 {
-	char 	*data;
-	char	**quoted;
-	char	**split_env;
-	int 		x;
-	t_token type;
-	int space_flag = 0;
-	char *before_env;
-	int temp = 0;
+	char	*env_variable;
+	char	*before_env;
+	char	**result;
+	int		start;
 
-	before_env = NULL;
-	if (input[*i] == '$')
-	{	
-		temp = *i;
+	result = ft_calloc(sizeof(char *), 2);
+	result[0] = ft_calloc(sizeof(char), 1);
+	result[1] = ft_calloc(sizeof(char), 1);
+	if ((par->quote_type == '\"' || par->different) && input[*i] == '$')
+	{
 		before_env = get_env_var_ex(input, *i);
-		data = get_env_var(input, i, l_env);
-		space_flag = ft_isspace(input[*i]);
-		type = ARG;
-	}
-	else if (is_operator(input[*i]))
-	{
-		if (input[*i] == '>' && input[*i + 1] == '>')
-		{
-			data = ft_strdup(">>");
-			type = APPEND;
-			(*i)++;
-		}
-		else if (input[*i] == '<' && input[*i + 1] == '<')
-		{
-			data = ft_strdup("<<");
-			type = HERDOC;
-			(*i)++;
-		}
-		else
-		{
-			if (input[*i] == '<')
-				type = STDIN_RD;
-			else if (input[*i] == '>')
-				type = STDOUT_RD;
-			else
-				type = OPERATOR;
-			data = char_to_str(input[*i]);
-		}
-		(*i)++; 
-		space_flag = ft_isspace(input[*i]);
-	}
-	else if (input[*i] == '\"')
-	{
-		quoted = get_quoted_word(input, i, l_env, '\"', 0);
-		data = quoted[1];
-		before_env = quoted[0];
-		if (input[*i])
-			(*i)++;
-		space_flag = ft_isspace(input[*i]);
-		type = QUOTE_ARG;
-	}
-	else if (input[*i] == '\'')
-	{
-		quoted = get_quoted_word(input, i, l_env, '\'', 0);
-		data = quoted[1];
-		before_env = quoted[0];
-		if (input[*i])
-			(*i)++;
-		space_flag = ft_isspace(input[*i]);
-		type = QUOTE_ARG;
+		env_variable = get_env_var(input, i, l_env);
+		result[0] = ft_strjoin(result[0], before_env);
+		result[1] = ft_strjoin(result[1], env_variable);
+		start = *i;
 	}
 	else
 	{
-		data = get_word(input, i);
-		space_flag = ft_isspace(input[*i]);
-		type = ARG;
+		result[0] = ft_strjoin(result[0], ft_strndup(&input[*i], 1));
+		result[1] = ft_strjoin(result[1], ft_strndup(&input[*i], 1));
+		(*i)++;
 	}
-	if (type == ARG && before_env)
-	{
-		split_env = ft_split(data);
-		x = 0;
-		while (split_env[x])
-		{
-			if (!split_env[x+1])
-				append_node(head, split_env[x], type, space_flag, before_env);
-			else
-				append_node(head, split_env[x], type, 2, before_env);
-			minishell_no_alzheimer(*head, data);
-			x++;
-		}
-		if (!split_env[0])
-		{
-			append_node(head, split_env[0], type, space_flag, before_env);
-			minishell_no_alzheimer(*head, data);
-		}
-		*prev_type = type;
-		return;
-	}
-	append_node(head, data, type, space_flag, before_env);
-	*prev_type = type;
+	return (result);
 }
 
-char **get_quoted_word(char *input, int *i, t_env *l_env, char quote_type, int different)
+char	**get_quoted_word(char *input, int *i, t_env *l_env, t_p_t_p *par)
+{
+	char	**result;
+	(*i)++;
+	while (input[*i] && (input[*i] != par->quote_type || par->different))
+		result = get_result(input, i, l_env, par);
+	return (result);
+}
+
+char **get_quoted_word2(char *input, int *i, t_env *l_env, char quote_type, int different)
 {
     char **result;
 	char *env_variable;
@@ -149,45 +100,25 @@ char **get_quoted_word(char *input, int *i, t_env *l_env, char quote_type, int d
     return (result);
 }
 
-char *get_word(char *input, int *i)
+
+char	*get_word(char *input, int *i)
 {
-	int start;
-	char *word;
+	int		start;
+	char	*word;
 
 	start = *i;
-	while (input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
+	while (input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i])
+		&& input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
 		(*i)++;
 	word = ft_strndup(&input[start], *i - start);
-	return word;
+	return (word);
 }
 
-void append_node(t_node **head, char *data, t_token type, int space_flag, char *before_env)
+char	*get_env_var_ex(char *input, int i)
 {
-	t_node *new_node = ft_calloc(sizeof(t_node), 1);
-	new_node->data = ft_strdup(data);
-	if (before_env)
-		new_node->before_env = ft_strdup(before_env);
-	else
-		new_node->before_env = NULL;
-	new_node->type = type;
-	new_node->path = NULL;
-	new_node->space_after = space_flag;
-	if (*head == NULL)
-		*head = new_node;
-	else
-	{
-		t_node *current = *head;
-		while (current->next != NULL)
-			current = current->next;
-		current->next = new_node;
-	}
-}
-
-char *get_env_var_ex(char *input, int i)
-{   
-	int start;
-	char *var_name;
-	int dollar;
+	int		start;
+	char	*var_name;
+	int		dollar;
 
 	dollar = 0;
 	start = i;
@@ -196,88 +127,131 @@ char *get_env_var_ex(char *input, int i)
 		i++;
 		dollar++;
 	}
-	while(input[i] && !ft_isspace(input[i]) && !is_operator(input[i]) && input[i] != '\"' && input[i] != '\'' && input[i] != '$')
+	while (input[i] && !ft_isspace(input[i]) && !is_operator(input[i])
+		&& input[i] != '\"' && input[i] != '\'' && input[i] != '$')
 		i++;
 	var_name = ft_strndup(&input[start], i - start);
 	return (var_name);
 }
 
-char *get_env_var(char *input, int *i, t_env *l_env)
-{   
-	int non_delim_index;
-	int end;
-	int dollar;
-	int start;
-	char *delim;
-	char *var_name;
-	char *var_value;
-	char *result;
+t_make_env	*create_m_e(void)
+{
+	t_make_env	*m_e;
 
-	(*i)++;
-	dollar = 0;
+	m_e = (t_make_env *)malloc(sizeof(t_make_env));
+	if (m_e == NULL)
+		return (NULL);
+	m_e->dollar = 0;
+	m_e->start = 0;
+	m_e->end = 0;
+	m_e->non_delim_index = 0;
+	m_e->delim = NULL;
+	m_e->var_name = NULL;
+	m_e->var_value = NULL;
+	m_e->result = NULL;
+	return (m_e);
+}
+
+void	loop_dollar(char *input, int *i, t_make_env *m_e)
+{
 	while (input[*i] == '$')
 	{
 		(*i)++;
-		dollar++;
+		m_e->dollar++;
 	}
-	start = *i;
-	if (input[*i] == '?')
-	{
-		(*i)++;
-		non_delim_index = *i;
-		while(input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
-			(*i)++;
-		end = *i;
-		delim = ft_substr(&input[non_delim_index], 0, end - non_delim_index);
-		var_value = ft_itoa(exit_status(YIELD));
-	}
-	else
-	{
-		while (input[*i] && (ft_isalnum(input[*i]) || input[*i] == '_' ))
-			(*i)++;
-		non_delim_index = *i;
-		while(input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i]) && input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
-			(*i)++;
-		end = *i; 
-		if (end == start - dollar)
-			return (ft_strndup(&input[start - dollar - 1], dollar + 1));
-		delim = ft_substr(&input[non_delim_index], 0, end - non_delim_index);
-		var_name = ft_strndup(&input[start], non_delim_index - start);
-		var_value = find_env_var(var_name, l_env);
-	}
-
-	if (var_value == NULL)
-	{
-		if (non_delim_index - start)
-		{
-			if ((!end - non_delim_index))
-				return (ft_strndup(&input[start - dollar], dollar));
-			else
-				return (ft_strjoin(ft_strndup(&input[start - dollar], dollar), delim));
-		}
-		else
-			return (ft_strjoin(ft_strndup(&input[start - dollar - 1], dollar + 1), delim));
-	}
-	result = ft_calloc(sizeof(char), ft_strlen(var_value) + 1 + ft_strlen(delim) + dollar);
-	ft_strcat(result, ft_strndup(&input[start - dollar], dollar));
-	ft_strcat(result, var_value);
-	ft_strcat(result, delim);
-	return (result);
+	m_e->start = *i;
 }
 
-char *find_env_var(const char *var_name, t_env *l_env)
+void	get_var_es(char *input, int *i, t_make_env *m_e)
 {
-    size_t len = ft_strlen(var_name);
-    t_env *current = l_env;
+	(*i)++;
+	m_e->non_delim_index = *i;
+	while (input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i])
+		&& input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
+		(*i)++;
+	m_e->end = *i;
+	m_e->delim = ft_substr(&input[m_e->non_delim_index],
+			0, m_e->end - m_e->non_delim_index);
+	m_e->var_value = ft_itoa(exit_status(YIELD));
+}
 
-	while (current) {
-        current = current->next;
-    }
-    while (l_env)
-    {
-        if (ft_strncmp(l_env->key, var_name, len) == 0 && l_env->key[len] == '\0')
-            return l_env->value;
-        l_env = l_env->next;
-    }
-    return NULL;
+int	get_var(char *input, int *i, t_make_env *m_e, t_env *l_env)
+{
+	while (input[*i] && (ft_isalnum(input[*i]) || input[*i] == '_' ))
+		(*i)++;
+	m_e->non_delim_index = *i;
+	while (input[*i] && !ft_isspace(input[*i]) && !is_operator(input[*i])
+		&& input[*i] != '\"' && input[*i] != '\'' && input[*i] != '$')
+		(*i)++;
+	m_e->end = *i;
+	if (m_e->end == m_e->start - m_e->dollar)
+		return (-1);
+	m_e->delim = ft_substr(&input[m_e->non_delim_index],
+			0, m_e->end - m_e->non_delim_index);
+	m_e->var_name = ft_strndup(&input[m_e->start],
+			m_e->non_delim_index - m_e->start);
+	m_e->var_value = find_env_var(m_e->var_name, l_env);
+	return (1);
+}
+
+char	*no_var_value(char *input, t_make_env *m_e)
+{
+	if (m_e->non_delim_index - m_e->start)
+	{
+		if ((!m_e->end - m_e->non_delim_index))
+			return (ft_strndup(&input[m_e->start - m_e->dollar], m_e->dollar));
+		else
+			return (ft_strjoin(ft_strndup(&input[m_e->start - m_e->dollar],
+						m_e->dollar), m_e->delim));
+	}
+	else
+		return (ft_strjoin(ft_strndup(&input[m_e->start - m_e->dollar - 1],
+					m_e->dollar + 1), m_e->delim));
+}
+
+char	*get_env_var(char *input, int *i, t_env *l_env)
+{
+	t_make_env	*m_e;
+	char		*result;
+
+	m_e = create_m_e();
+	(*i)++;
+	loop_dollar(input, i, m_e);
+	if (input[*i] == '?')
+		get_var_es(input, i, m_e);
+	else
+	{
+		if (get_var(input, i, m_e, l_env) == -1)
+			return (ft_strndup(&input[m_e->start - m_e->dollar - 1],
+					m_e->dollar + 1));
+	}
+	if (m_e->var_value == NULL)
+		return (no_var_value(input, m_e));
+	m_e->result = ft_calloc(sizeof(char),
+			ft_strlen(m_e->var_value) + 1 + ft_strlen(m_e->delim) + m_e->dollar);
+	ft_strcat(m_e->result,
+		ft_strndup(&input[m_e->start - m_e->dollar], m_e->dollar));
+	ft_strcat(m_e->result, m_e->var_value);
+	ft_strcat(m_e->result, m_e->delim);
+	result = ft_strdup(m_e->result);
+	return (m_e->result);
+}
+
+char	*find_env_var(const char *var_name, t_env *l_env)
+{
+	size_t	len;
+	t_env	*current;
+
+	len = ft_strlen(var_name);
+	current = l_env;
+	while (current)
+		current = current->next;
+	while (l_env)
+	{
+		if (ft_strncmp(l_env->key, var_name, len)
+			== 0 && l_env->key[len] == '\0')
+			return (l_env->value);
+		l_env = l_env->next;
+	}
+	return (NULL);
 }

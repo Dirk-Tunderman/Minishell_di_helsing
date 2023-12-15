@@ -43,6 +43,34 @@ typedef struct s_redirect t_redirect;
 	REPROMPT,
 } t_token;
 
+typedef struct s_p_t_p
+{
+	char 	*data;
+	char	**quoted;
+	char	**split_env;
+	char	quote_type;
+	int 	x;
+	t_token type;
+	int space_flag;
+	char *before_env;
+	int temp;
+	int different;
+} t_p_t_p;
+
+typedef struct s_make_env
+{
+	int non_delim_index;
+	int end;
+	int dollar;
+	int start;
+	char *delim;
+	char *var_name;
+	char *var_value;
+	char *result;
+} t_make_env;
+
+
+
 typedef struct s_data
 {
 	t_cmd *cmd;
@@ -127,8 +155,8 @@ char get_env_total();
 
 //Tokenisation
 void lexer(char *input, t_node **head, t_env *l_env);
-void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env *l_env);
-char **get_quoted_word(char *input, int *i, t_env *l_env, char quote_type, int different);
+//void process_token(char *input, int *i, t_token *prev_type, t_node **head, t_env *l_env);
+char	**get_quoted_word(char *input, int *i, t_env *l_env, t_p_t_p *par);
 char *remove_quotes(char *input);
 char *get_word(char *input, int *i);
 char *get_before_env_varr(char *input, int temp);
@@ -141,7 +169,7 @@ t_node *create_node(char *str, t_token type);
 int	add_token_list(t_node **head, char *input);
 
 int is_shell_command(char *str);
-void append_node(t_node **head, char *data, t_token type, int space_flag, char *before_env);
+// void append_node(t_node **head, char *data, t_token type, int space_flag, char *before_env);
 char *get_env_var(char *input, int *i, t_env *l_env);
 char *get_env_var_ex(char *input, int i);
 char *expand_env_in_word(const char *word, t_env *l_env, bool is_single_quoted);
@@ -170,6 +198,16 @@ int	set_and_check_redirect(t_node *head);
 char *find_executable(char *command,t_env *l_env);
 void resolve_path(t_node *head, t_env *l_env);
 void resolve_commands(t_node *head, t_env *l_env);
+
+
+//get enviorment variable
+char *get_env_var_ex(char *input, int i);
+t_make_env *create_m_e();
+void	loop_dollar(char *input, int *i, t_make_env *m_e);
+void	get_var_es(char *input, int *i, t_make_env *m_e);
+int get_var(char *input, int *i, t_make_env *m_e, t_env *l_env);
+char *no_var_value(char *input, t_make_env *m_e);
+
 
 // Utils
 int ft_isspace(int c);
@@ -291,6 +329,21 @@ void fail_exit();
 void save_alloc(void *sv);
 void *alloc_wrap(void *arg);
 t_env *duplicate_env(t_env *env);
+
+//extra process token .c
+void process_dollar(char *input, int *i, t_env *l_env, t_p_t_p *params);
+void process_operator(char *input, int *i, t_p_t_p *params);
+void process_quotes(char *input, int *i, t_env *l_env, t_p_t_p *params);
+void handle_arg_type(t_node **head, t_p_t_p *params);
+void	regular_arg(char *input, int *i, t_p_t_p *params);
+t_p_t_p *create_process_token_params();
+void append_node(t_node **head, t_p_t_p *params);
+void	process_token(char *input, int *i, t_node **head, t_env *l_env);
+void	minishell_no_alzheimer(t_node *head, char *data);
+
+char	*get_full_path(char *path_env_copy, char *command);
+char 	**get_quoted_word2(char *input, int *i, t_env *l_env, char quote_type, int different);
+
 
 // builtins
 int unset(char **args, t_env **env, int *exit_stat);

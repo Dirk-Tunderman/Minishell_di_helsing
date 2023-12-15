@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
+/*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/14 21:02:14 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 22:16:56 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/15 19:43:08 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ t_env	*duplicate_env(t_env *env)
 
 	res = 0;
 	if (env)
-		res = malloc(sizeof(t_env));
+		res = ft_calloc(1, sizeof(t_env));
 	head = res;
 	while (env)
 	{
@@ -72,7 +72,7 @@ t_env	*duplicate_env(t_env *env)
 		env = env->next;
 		if (env)
 		{
-			res->next = malloc(sizeof(t_env));
+			res->next = ft_calloc(1, sizeof(t_env));
 			res = res->next;
 		}
 		else
@@ -103,6 +103,7 @@ int	start_cmd(t_node *head, t_env *l_env, char **envp)
 		parsed->exit_status = 1;
 	exit_status(parsed->exit_status);
 	restore_fds(0);
+	return 0;
 }
 
 void	main_loop(t_node *head, char **envp)
@@ -124,10 +125,13 @@ void	main_loop(t_node *head, char **envp)
 		{
 			lexer(input, &head, l_env);
 			set_redirect_in_nodes(head);
+			display_list(head);
+
 			if (!error_all_check(head))
 				start_cmd(head, l_env, envp);
 			l_env = duplicate_env(l_env);
 			fail(0, 0);
+			display_list(head);
 			alloc_wrap_env(l_env);
 			head = NULL;
 		}

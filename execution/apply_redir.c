@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   apply_redir.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
+/*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/02 13:45:30 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 21:02:56 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/15 17:24:54 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int heredoc(char *delimiter, int *fds, int type, t_comparsed *cmds)
 	}
 	while (_ft_strcmp(result, delimiter))
 	{
-		intheenv = get_quoted_word(result, &(int){-1}, cmds->environment, '\"', 1);
+		intheenv = get_quoted_word2(result, &(int){-1}, cmds->environment, '\"', 1);
 		if (type != QUOTE_ARG)
 		{
 		 	if (write(fds[1], intheenv[1], ft_strlen(intheenv[1])) == -1)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   fail.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: eamrati <eamrati@student.42.fr>            +#+  +:+       +#+        */
+/*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/02 21:10:44 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/14 21:41:24 by eamrati          ###   ########.fr       */
+/*   Updated: 2023/12/15 19:36:03 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,22 +17,24 @@ void *alloc_wrapper(void *allocation, int mode, void *additional)
 	static t_alloc *nodes;
 	static t_env	*sv_additional;
 	t_alloc *tmp;
-	
 	if (additional)
 		sv_additional = (t_env *)additional;
 	if (mode == 2)
 		return (sv_additional);
 	if (mode)
 	{
-		while (nodes)
+		if (nodes)
 		{
-			free(nodes->allocation);
-			tmp = nodes;
-			nodes = nodes->next;
-			free(tmp);
+			while (nodes)
+			{
+				free(nodes->allocation);
+				tmp = nodes;
+				nodes = nodes->next;
+				free(tmp);
+			}
+			nodes = 0;
+			return (0);
 		}
-		nodes = 0;
-		return (0);
 	}
 	if (!allocation)
 	{
@@ -58,8 +60,10 @@ void save_alloc(void *sv)
 void *fail(void *ret, int smth)
 {
 	(void) smth;
+	printf("fail\n");
 	if (!ret)
 		alloc_wrapper(0, 1, 0);
+	printf("fail 2\n");
 	return (ret);
 }
 

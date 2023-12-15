@@ -6,7 +6,7 @@ RM := rm -rf
 
 SRC := main.c tokenisation.c error_handeling.c  \
 		utils.c utils_2.c utils_3.c ft_itoa.c ft_atoi.c ft_isint.c resolute.c\
-		env_in_list.c signals.c ft_split.c
+		env_in_list.c signals.c ft_split.c process_token.c start_tokenizer.c
 
 LDFLAGS += -lreadline -L$(shell brew --prefix)/opt/readline/lib/
 CPPFLAGS += -I$(shell brew --prefix)/opt/readline/include/ -I.
