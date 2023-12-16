@@ -6,7 +6,7 @@
 /*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/15 16:05:04 by dtunderm          #+#    #+#             */
-/*   Updated: 2023/12/16 10:30:14 by dtunderm         ###   ########.fr       */
+/*   Updated: 2023/12/16 11:49:39 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,23 +73,4 @@ void	update_node_type_and_path(t_node *current, char *executable_path)
 {
 	current->type = CMD;
 	current->path = executable_path;
-}
-
-void	resolve_path(t_node *head, t_env *l_env)
-{
-	t_node	*current;
-	char	*executable_path;
-
-	current = head;
-	while (current != NULL)
-	{
-		if ((current->type == ARG || current->type == QUOTE_ARG)
-			&& current->data)
-		{
-			executable_path = find_executable(current->data, l_env);
-			if (executable_path != NULL)
-				update_node_type_and_path(current, executable_path);
-		}
-		current = current->next;
-	}
 }

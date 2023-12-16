@@ -6,7 +6,7 @@
 /*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/15 16:03:45 by dtunderm          #+#    #+#             */
-/*   Updated: 2023/12/15 19:44:58 by dtunderm         ###   ########.fr       */
+/*   Updated: 2023/12/16 11:57:22 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ t_p_t_p	*create_process_token_params(void)
 	return (params);
 }
 
-void	append_node(t_node **head, t_p_t_p *params)
+void	append_node(t_node **head, t_p_t_p *params, int space_flag)
 {
 	t_node	*new_node;
 	t_node	*current;
@@ -45,7 +45,7 @@ void	append_node(t_node **head, t_p_t_p *params)
 		new_node->before_env = NULL;
 	new_node->type = params->type;
 	new_node->path = NULL;
-	new_node->space_after = params->space_flag;
+	new_node->space_after = space_flag;
 	if (*head == NULL)
 		*head = new_node;
 	else
@@ -78,6 +78,6 @@ void	process_token(char *input, int *i, t_node **head, t_env *l_env)
 		handle_arg_type(head, par);
 		return ;
 	}
-	append_node(head, par);
+	append_node(head, par, par->space_flag);
 	free(par);
 }

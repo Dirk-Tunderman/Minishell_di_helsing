@@ -61,7 +61,7 @@ typedef struct s_make_env
 {
 	int non_delim_index;
 	int end;
-	int dollar;
+	int dol;
 	int start;
 	char *delim;
 	char *var_name;
@@ -200,6 +200,9 @@ void resolve_path(t_node *head, t_env *l_env);
 void resolve_commands(t_node *head, t_env *l_env);
 
 
+//parse env
+void	update_node_type_and_path(t_node *current, char *executable_path);
+
 //get enviorment variable
 char *get_env_var_ex(char *input, int i);
 t_make_env *create_m_e();
@@ -337,7 +340,7 @@ void process_quotes(char *input, int *i, t_env *l_env, t_p_t_p *params);
 void handle_arg_type(t_node **head, t_p_t_p *params);
 void	regular_arg(char *input, int *i, t_p_t_p *params);
 t_p_t_p *create_process_token_params();
-void append_node(t_node **head, t_p_t_p *params);
+void append_node(t_node **head, t_p_t_p *params, int space_flag);
 void	process_token(char *input, int *i, t_node **head, t_env *l_env);
 void	minishell_no_alzheimer(t_node *head, char *data);
 

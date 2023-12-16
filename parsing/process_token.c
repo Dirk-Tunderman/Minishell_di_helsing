@@ -6,20 +6,11 @@
 /*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/15 15:57:11 by dtunderm          #+#    #+#             */
-/*   Updated: 2023/12/16 10:31:34 by dtunderm         ###   ########.fr       */
+/*   Updated: 2023/12/16 11:55:58 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-
-void	process_dollar(char *input, int *i, t_env *l_env, t_p_t_p *params)
-{
-	params->temp = *i;
-	params->before_env = get_env_var_ex(input, *i);
-	params->data = get_env_var(input, i, l_env);
-	params->space_flag = ft_isspace(input[*i]);
-	params->type = ARG;
-}
 
 void	process_operator(char *input, int *i, t_p_t_p *params)
 {
@@ -62,28 +53,22 @@ void	process_quotes(char *input, int *i, t_env *l_env, t_p_t_p *params)
 
 void	handle_arg_type(t_node **head, t_p_t_p *params)
 {
-	if (params->before_env)
+	params->split_env = ft_split(params->data);
+	params->x = 0;
+	while (params->split_env[params->x])
 	{
-		params->split_env = ft_split(params->before_env);
-		params->x = 0;
-		while (params->split_env[params->x])
+		if (!params->split_env[params->x + 1])
+			append_node(head, params, params->space_flag);
+		else
 		{
-			if (!params->split_env[params->x + 1])
-				append_node(head, params);
-			else
-				append_node(head, params);
-			minishell_no_alzheimer(*head, params->data);
-			params->x++;
+			append_node(head, params, 2);
 		}
-		if (!params->split_env[0])
-		{
-			append_node(head, params);
-			minishell_no_alzheimer(*head, params->data);
-		}
+		minishell_no_alzheimer(*head, params->data);
+		params->x++;
 	}
-	else
+	if (!params->split_env[0])
 	{
-		append_node(head, params);
+		append_node(head, params, params->space_flag);
 		minishell_no_alzheimer(*head, params->data);
 	}
 }
