@@ -6,7 +6,7 @@
 /*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/15 15:57:11 by dtunderm          #+#    #+#             */
-/*   Updated: 2023/12/15 19:41:51 by dtunderm         ###   ########.fr       */
+/*   Updated: 2023/12/16 10:31:34 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ void	process_dollar(char *input, int *i, t_env *l_env, t_p_t_p *params)
 
 void	process_operator(char *input, int *i, t_p_t_p *params)
 {
-	printf("go 1\n");
 	if (input[*i] == '>' && input[*i + 1] == '>')
 	{
 		params->data = ft_strdup(">>");
@@ -47,7 +46,6 @@ void	process_operator(char *input, int *i, t_p_t_p *params)
 		params->data = char_to_str(input[*i]);
 	}
 	(*i)++;
-	printf("go 2\n");
 	params->space_flag = ft_isspace(input[*i]);
 }
 
@@ -96,4 +94,3 @@ void	regular_arg(char *input, int *i, t_p_t_p *params)
 	params->space_flag = ft_isspace(input[*i]);
 	params->type = ARG;
 }
-

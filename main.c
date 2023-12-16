@@ -6,7 +6,7 @@
 /*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/14 21:02:14 by eamrati           #+#    #+#             */
-/*   Updated: 2023/12/15 19:43:08 by dtunderm         ###   ########.fr       */
+/*   Updated: 2023/12/16 10:32:08 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,8 +130,8 @@ void	main_loop(t_node *head, char **envp)
 			if (!error_all_check(head))
 				start_cmd(head, l_env, envp);
 			l_env = duplicate_env(l_env);
-			fail(0, 0);
-			display_list(head);
+			//fail(0, 0);
+			//display_list(head);
 			alloc_wrap_env(l_env);
 			head = NULL;
 		}

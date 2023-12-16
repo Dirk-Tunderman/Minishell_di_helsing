@@ -6,7 +6,7 @@
 /*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/15 16:08:03 by dtunderm          #+#    #+#             */
-/*   Updated: 2023/12/15 19:42:26 by dtunderm         ###   ########.fr       */
+/*   Updated: 2023/12/16 10:31:14 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ char	**get_result(char *input, int *i, t_env *l_env, t_p_t_p *par)
 char	**get_quoted_word(char *input, int *i, t_env *l_env, t_p_t_p *par)
 {
 	char	**result;
+	
 	(*i)++;
 	while (input[*i] && (input[*i] != par->quote_type || par->different))
 		result = get_result(input, i, l_env, par);
@@ -99,7 +100,6 @@ char **get_quoted_word2(char *input, int *i, t_env *l_env, char quote_type, int 
     }
     return (result);
 }
-
 
 char	*get_word(char *input, int *i)
 {
