@@ -6,7 +6,7 @@
 /*   By: dtunderm <dtunderm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/15 16:03:45 by dtunderm          #+#    #+#             */
-/*   Updated: 2023/12/16 11:57:22 by dtunderm         ###   ########.fr       */
+/*   Updated: 2023/12/16 12:42:46 by dtunderm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,5 +79,18 @@ void	process_token(char *input, int *i, t_node **head, t_env *l_env)
 		return ;
 	}
 	append_node(head, par, par->space_flag);
-	free(par);
+
 }
+
+char	*ft_strchr(const char *s, int c)
+{
+	int	i;
+
+	i = 0;
+	while (s[i] && s[i] != (char)c)
+		i++;
+	if (s[i] == (char) c)
+		return ((char *) s + i);
+	return (NULL);
+}
+
